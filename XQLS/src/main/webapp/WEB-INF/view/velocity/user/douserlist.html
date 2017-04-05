@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>用户权限显示</title>
+<style type="text/css">
+.content{
+	text-align:center;
+}
+</style>
+<script type="text/javascript">
+var datatable=null;
+$(document).ready(function(){
+	createtable();
+	$("#selbtn").click(function(){
+	createtable();
+	});
+});
+
+	//velocity与jquery的美元符号使用异常的处理方式
+	function dw() {
+	}
+	dw.ajax = function(s) {
+		jQuery.ajax(s);
+	}
+
+function createtable(){
+if(datatable!=null){
+	datatable.destroy();
+}
+datatable=$("#usertable").DataTable({
+	language:{url:"${request.contextPath}/resource/css/china.json"},
+	paging:true,
+	searching:false,
+	ordering:false,
+	serverSide:true,
+		ajax:{
+		url:"${request.contextPath}/user/douserlist",
+		type:"post",
+		data:{"username":$("#username").val(),
+			   "rolename":$("#rolename").val(),
+			   "blockname":$("#blockname").val()},
+		datasrc:'data'
+		},
+		columns:[
+		{"data": null,"targets": 0},
+		{data:"USERNAME"},
+		{data:"PASSWORD"},
+		{data:"ROLENAME"},
+		{data:"BLOCK_NAME"},
+		{data:"PHONENUM"},
+		{data:"WARNLEVEL"},
+		{data:"USERID",render:function(data,type,row){
+			return "<a href='javascript:edit("+data+")'>修改</a>|<a href='javascript:del("+data+")'>删除</a>";
+		}}
+		],"fnDrawCallback": function(){
+	　　var api = this.api();
+	　　var startIndex= api.context[0]._iDisplayStart;//获取到本页开始的条数
+	　　api.column(0).nodes().each(function(cell, i) {
+	　　　　cell.innerHTML = startIndex + i + 1;
+	　　});
+}
+	});
+
+}
+
+//用户表的添加
+function add(){
+	dw.ajax({
+	url:"${request.contextPath}/user/touseradd",
+	type:"post",
+	success:function(msg){
+	bootbox.dialog({
+	title:"添加设备",
+	message:msg
+	});
+	}
+	});
+}
+//设备的修改
+function edit(userid){
+	dw.ajax({
+	url:"${request.contextPath}/user/touseredit",
+	type:"post",
+	data:{"userid":userid},
+	success:function(msg){
+	bootbox.dialog({
+	title:"修改用户信息",
+	message:msg
+	});
+	}
+	});
+}
+
+//删除设备
+function del(userid){
+bootbox.confirm("你确定要删除吗？",function(result){
+if(result){
+		dw.ajax({
+		url:"${request.contextPath}/user/douserdel",
+		type:"post",
+		data:{"userid":userid},
+		dataType:"json",
+		success:function(msg){
+		if(msg.tag){
+		bootbox.alert(msg.message);
+		datatable.draw(false);
+		}
+		}
+		});
+	}
+	});
+}
+</script>
+</head>
+<body>
+<a href="javascript:add();">添加用户</a>
+<a href="${request.contextPath}/user/torolelist">角色管理</a>
+<form action="#" method="post">
+用户名：<input type="text" id="username">
+角色名：<input type="text" id="rolename">
+区块名：<input type="text" id="blockname">
+<input type="button" id="selbtn" value="查询">
+<input type="reset" value="重置">
+</form>
+
+<table id="usertable" class="display">
+	<thead>
+	<tr>
+		<th class="content">序号</th>
+		<th class="content">用户名称</th>
+		<th class="content">用户密码</th>
+		<th class="content">用户角色</th>
+		<th class="content">所属区块</th>
+		<th class="content">用户号码</th>
+		<th class="content">报警级别</th>
+		<th class="content">功能操作</th>
+	</tr>
+	</thead>
+</table>
+
+</body>
+</html>

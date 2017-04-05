@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"    
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        ">
+	
+	<bean class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer">
+	<property name="locations">
+	<!-- 属性locations的值是一个数组模式的数据 -->
+	<list>
+	<!-- 指向一个配置文件  -->
+	<value>/WEB-INF/config/spring/dbconfig.properties</value>
+	</list>
+	</property>
+	</bean>
+	<!-- datasource是一个数据池 -->
+	<bean id="datasource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
+	<!-- 数据库基本信息配置 ，需要先配置上面的配置文件的路径之后，下面的属性才能正确的取值-->
+		<property name="driverClassName" value="${driverClassName}" />
+		<property name="url" value="${url}" />
+        <property name="username" value="${username}" />
+		<property name="password" value="${password}" />
+		<property name="filters" value="${filters}"></property>
+		<!-- 最大并发连接数 -->
+		<property name="maxActive" value="${maxActive}"></property>
+		<!-- 配置初始化连接数量 -->
+		<property name="initialSize" value="${initialSize}" />
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="${maxWait}" />
+		<!-- 最小空闲连接数 -->
+		<property name="minIdle" value="${minIdle}" />
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="${timeBetweenEvictionRunsMillis}" />
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="validationQuery" value="${validationQuery}" />
+		<property name="minEvictableIdleTimeMillis" value="${minEvictableIdleTimeMillis}" />
+		<property name="testWhileIdle" value="${testWhileIdle}" />
+		<!-- 这里建议配置为TRUE，防止取到的连接不可用 -->
+		<property name="testOnBorrow" value="${testOnBorrow}" />
+		<property name="testOnReturn" value="${testOnReturn}" />
+		<property name="maxOpenPreparedStatements" value="${maxOpenPreparedStatements}" />
+		<!-- 打开removeAbandoned功能 -->
+		<property name="removeAbandoned" value="${removeAbandoned}"></property>
+		<property name="removeAbandonedTimeout" value="${removeAbandonedTimeout}"></property>
+		<!-- 关闭abanded连接时输出错误日志 -->
+		<property name="logAbandoned" value="${logAbandoned}"></property>
+	</bean>
+	
+	  <!-- 获取sqlsessionfactory -->
+	<bean name="sqlsessionfactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+	<!-- 属性指向mybatis的配置文件，配置文件中指定了sqlmapper的文件路径和指定了sqlmapper中使用到的类别名的设置 -->
+ 	<property name="configLocation" value="/WEB-INF/config/mybatis/Configuration.xml"></property>
+	<!-- dataSource为一个数据池是，可以在数据池中获取到数据库连接 -->
+	<property name="dataSource" ref="datasource"></property>
+	<!-- 用于设置sqlmapper访问的别名 -->
+	<property name="typeAliasesPackage" value="com.xqls.entity.zxw"></property>
+	<!-- 设置没有batis对应的sqlmapper的文件 -->
+	<property name="mapperLocations" >
+	<list>
+	<value>classpath:com/xqls/mapper/zxw/*Mapper.xml</value>
+	</list>
+	</property> 
+	</bean>
+	<!-- 获取mybatis中的接口实现类  -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	<!-- 指向具体的sqlmapper对应的Dao层的接口类 -->
+	<property name="basePackage" value="com.xqls.dao.zxw"></property>
+	<!-- 将之前获取到的sqlsessionfactory值给到对象中用于获取sqlmapper的接口类 -->
+	<property name="sqlSessionFactoryBeanName" value="sqlsessionfactory"></property>
+	</bean>
+	
+	
+	<!-- 用于进行 事务的提交和处理 -->
+	<!-- org.springframework.jdbc.datasource.DataSourceTransactionManager 提供了方法对数据源进行事务管理 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	<!-- 对dataSource使用事务管理 -->
+	<property name="dataSource" ref="datasource"></property>
+	</bean>
+	
+	<bean id="myrealm" class="com.xqls.realm.zxw.MyRealm"></bean>
+	
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="realm" ref="myrealm"></property>
+	</bean>
+	
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<property name="securityManager" ref="securityManager"></property>
+		<property name="loginUrl" value="/user/tologin"></property>
+		<property name="successUrl" value="/success.jsp"></property>
+		<property name="unauthorizedUrl" value="/user/unauthor"></property>
+		<property name="filterChainDefinitions">
+			<value>
+				  /user/tologin=anon
+                  /admin*=authc
+                  /test=roles[test]
+                  /parttest=perms["test:create"]
+			</value>
+		</property>
+	</bean>
+	
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"></bean>
+	
+	<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" depends-on="lifecycleBeanPostProcessor"></bean>
+	
+	<bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<property name="securityManager" ref="securityManager"></property>
+	</bean>
+	
+	<!-- 定义怎么对dataSource进行事务管理 -->
+	<tx:advice id="myadvice" transaction-manager="transactionManager">
+		<tx:attributes>
+		<!-- 对那些开头的方法进行事务管理 是否必须使用事务管理  在遇到异常的时候进行数据库的回滚 -->
+		<tx:method name="add*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+		<tx:method name="del*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+		<tx:method name="upd*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+		</tx:attributes>
+	</tx:advice>
+	<!-- 在什么时候进行事务的管理 -->
+	<aop:config>
+	<!-- 在service中的方法被调用的时候触发事务管理 -->
+	<aop:pointcut expression="execution(* com.xqls.service.zxw..*(..))" id="mycut"/>
+	<!-- 使用上面的方法进行数据库的事务管理 -->
+	<aop:advisor advice-ref="myadvice" pointcut-ref="mycut"/>
+	</aop:config>
+	
+</beans>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqls.dao.zxw.samplingrecordMapper">
+  <resultMap id="BaseResultMap" type="com.xqls.entity.zxw.samplingrecord">
+    <id column="SAMPL_ID"  property="samplId" />
+    <result column="SAMPL_BOTTID"  property="samplBottid" />
+    <result column="SAMPL_RESE"  property="samplRese" />
+    <result column="SAMP_DATE" jdbcType="DATE" property="sampDate" />
+    <result column="BLOCK_ID"  property="blockId" />
+    <result column="EQUIP_ID"  property="equipId" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    SAMPL_ID, SAMPL_BOTTID, SAMPL_RESE, SAMP_DATE, BLOCK_ID, EQUIP_ID
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from SAMPLINGRECORD
+    where SAMPL_ID = #{samplId}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from SAMPLINGRECORD
+    where SAMPL_ID = #{samplId}
+  </delete>
+  <insert id="insert" parameterType="com.xqls.entity.zxw.samplingrecord">
+    <selectKey keyProperty="samplId" order="BEFORE" resultType="java.lang.Integer">
+      select SEQ_SAMPLID.nextval from SAMPLINGRECORD
+    </selectKey>
+    insert into SAMPLINGRECORD (SAMPL_BOTTID, SAMPL_RESE, SAMP_DATE, 
+      BLOCK_ID, EQUIP_ID)
+    values (#{samplBottid}, #{samplRese}, #{sampDate,jdbcType=DATE}, 
+      #{blockId}, #{equipId})
+  </insert>
+  <insert id="insertSelective" parameterType="com.xqls.entity.zxw.samplingrecord">
+    <selectKey keyProperty="samplId" order="BEFORE" resultType="java.lang.Integer">
+      select SEQ_SAMPLID.nextval from SAMPLINGRECORD
+    </selectKey>
+    insert into SAMPLINGRECORD
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="samplBottid != null">
+        SAMPL_BOTTID,
+      </if>
+      <if test="samplRese != null">
+        SAMPL_RESE,
+      </if>
+      <if test="sampDate != null">
+        SAMP_DATE,
+      </if>
+      <if test="blockId != null">
+        BLOCK_ID,
+      </if>
+      <if test="equipId != null">
+        EQUIP_ID,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="samplBottid != null">
+        #{samplBottid},
+      </if>
+      <if test="samplRese != null">
+        #{samplRese},
+      </if>
+      <if test="sampDate != null">
+        #{sampDate,jdbcType=DATE},
+      </if>
+      <if test="blockId != null">
+        #{blockId},
+      </if>
+      <if test="equipId != null">
+        #{equipId},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.xqls.entity.zxw.samplingrecord">
+    update SAMPLINGRECORD
+    <set>
+      <if test="samplBottid != null">
+        SAMPL_BOTTID = #{samplBottid},
+      </if>
+      <if test="samplRese != null">
+        SAMPL_RESE = #{samplRese},
+      </if>
+      <if test="sampDate != null">
+        SAMP_DATE = #{sampDate,jdbcType=DATE},
+      </if>
+      <if test="blockId != null">
+        BLOCK_ID = #{blockId},
+      </if>
+      <if test="equipId != null">
+        EQUIP_ID = #{equipId},
+      </if>
+    </set>
+    where SAMPL_ID = #{samplId}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.xqls.entity.zxw.samplingrecord">
+    update SAMPLINGRECORD
+    set SAMPL_BOTTID = #{samplBottid},
+      SAMPL_RESE = #{samplRese},
+      SAMP_DATE = #{sampDate,jdbcType=DATE},
+      BLOCK_ID = #{blockId},
+      EQUIP_ID = #{equipId}
+    where SAMPL_ID = #{samplId}
+  </update>
+</mapper>

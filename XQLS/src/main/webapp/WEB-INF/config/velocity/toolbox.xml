@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<toolbox>
+	<tool>
+	   <key>date</key>
+	   <scope>application</scope>
+	   <class>org.apache.velocity.tools.generic.DateTool</class>
+	   <parameter name="format" value="yyyy-M-d"/>
+	</tool>
+	<tool>
+		<key>shiro</key>
+		<scope>application</scope>
+		<class>com.xqls.utils.zxw.Permission</class>
+	</tool>
+<!-- 	<tool>
+		<key>link</key>
+		<scope>request</scope>
+		<class>org.apache.velocity.tools.view.tools.LinkTool</class>
+	</tool> -->
+</toolbox> 

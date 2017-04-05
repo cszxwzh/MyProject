@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>显示区块信息</title>
+<style type="text/css">
+.content{
+text-align:center;
+}
+#equip{
+	float:right;
+	width:1000px;
+}
+</style>
+<script type="text/javascript">
+	var zTreeObj = null;
+	$(document).ready(function() {
+		showtree("blockTree",setting);
+		showtree("treeSelect",setting2);
+		createtable();
+	});
+	//设置的json信息
+	var setting = {
+		//页面上显示的效果的设置
+		view : {
+			//鼠标移动到节点上需要设置的信息，通过addHoverDom这个函数进行设置
+			addHoverDom : addHoverDom,
+			removeHoverDom : removeHoverDom
+		},
+		//编辑功能
+		edit : {
+			//设置是否显示对应的操作图标，只设置这个的话只会显示修改和删除的图标
+			enable : true,
+			editNameSelectAll : true
+		},
+		data : {
+		//使用简单的json数据作为数据来源
+			simpleData : {
+				enable : true
+			}
+		},
+		//回调函数的设置
+		callback : {
+			//删除之前调用的函数
+			beforeRemove : BeforeRemove,
+			//重命名之前调用的函数
+			beforeRename : BeforeRename,
+			//删除之后调用的函数
+			onRemove : OnRemove,
+			//重命名之后调用的函数
+			onRename : OnRename,
+			onClick: onClick1
+		}
+	};
+	//文本框中下拉tree的设置
+	var setting2 = {
+		view: {
+				dblClickExpand: false
+			},
+		data : {
+			simpleData : {
+				enable : true
+			}
+		},
+		callback : {
+			beforeClick: beforeClick,
+			onClick: onClick
+		}
+	};
+	//velocity与jquery的美元符号使用异常的处理方式
+	function dw() {
+	}
+	dw.ajax = function(s) {
+		jQuery.ajax(s);
+	}
+	//通过ajax查询出需要显示的内容，s为需要显示树形图的元素的id，set为上面的setting json数据
+	function showtree(s,set) {
+		dw.ajax({
+					url : "${request.contextPath}/block/treeresult",
+					type : "post",
+					dataType : "json",
+					success : function(data) {
+						//初始化，ztree的显示
+						zTreeObj = jQuery.fn.zTree.init($("#"+s),
+								set, data);
+					}
+				});
+	}
+	//删除节点之前操作的函数
+	function BeforeRemove(treeId, treeNode) {
+		var zTree = jQuery.fn.zTree.getZTreeObj("blockTree");
+		zTree.selectNode(treeNode);
+		return confirm("你确认要删除节点" + treeNode.name + "吗?");
+	}
+	//重命名节点之前进行的函数
+	function BeforeRename(treeId, treeNode, newName, isCancel) {
+		if (newName.length < 1) {
+			alert("节点的名称不能为空");
+			return false;
+		}
+		return true;
+	}
+	//删除元素之后进行的操作
+	function OnRemove(event, treeId, treeNode) {
+		//调用ajax在数据库中删除对应的数据
+		dw.ajax({
+			url : "${request.contextPath}/block/dodel",
+			type : "post",
+			data : {
+				"blockNum" : treeNode.id
+			},
+			dataType : "json",
+			success : function(data) {
+				if (!data.tag) {
+					alert("删除失败！");
+				}
+				showtree("blockTree",setting);
+			}
+		});
+	}
+	//重命名之后进行的操作
+	function OnRename(event, treeId, treeNode, isCancel) {
+	//调用ajax对数据库中的数据进行重命名
+		dw.ajax({
+			url : "${request.contextPath}/block/doupd",
+			type : "post",
+			data : {
+				"blockNum" : treeNode.id,
+				"blockName" : treeNode.name
+			},
+			dataType : "json",
+			success : function(data) {
+				if (!data.tag) {
+					alert("更新失败！");
+				}
+				showtree("blockTree",setting);
+			}
+		});
+	}
+	//对于鼠标移入元素进行的操作
+	var newCount = 1;
+	function addHoverDom(treeId, treeNode) {
+		//获取移入的节点元素
+		var sObj = $("#" + treeNode.tId + "_span");
+		if (treeNode.editNameFlag || $("#addBtn_" + treeNode.tId).length > 0)
+			return;
+		//定义添加按钮
+		var addStr = "<span class='button add' id='addBtn_" + treeNode.tId
+				+ "' title='add node' onfocus='this.blur();'></span>";
+		//在节点之后添加按钮
+		sObj.after(addStr);
+		var btn = $("#addBtn_" + treeNode.tId);
+		//给节点绑定点击事件
+		if (btn)btn.bind("click", function() {
+				//获取ztree的元素
+				var zTree = jQuery.fn.zTree.getZTreeObj("blockTree");
+				//新添加元素的默认名称
+				var name = "NewNode";
+				//使用ajax在数据库中添加对应的数据
+				dw.ajax({
+					url : "${request.contextPath}/block/doadd",
+					type : "post",
+					data : {
+						"blockNum" : treeNode.id,
+						"blockName" : name + (newCount++)
+					},
+					dataType : "json",
+					success : function(data) {
+						if (data.tag) {
+						var newid = data.data.blockNum;
+							//如果数据库的数据添加成功则在节点上进行节点的添加
+							zTree.addNodes(treeNode, {
+								id : newid,
+								pId : treeNode.id,
+								name : "NewNode" + (newCount++)
+							});
+							var node = zTree.getNodeByParam("id", newid, null); //根据新的id找到新添加的节点  
+            				zTree.selectNode(node); //让新添加的节点处于选中状态  
+            				zTree.editName(node);
+						}
+					}
+				});
+
+			});
+	};
+	
+	//移除节点的时候移除对应的图标显示
+	function removeHoverDom(treeId, treeNode) {
+		$("#addBtn_" + treeNode.tId).unbind().remove();
+	};
+	
+	//文本框下的ztree的显示
+	function showMenu() {
+			var cityObj = $("#blocksel");
+			//获取元素的边距
+			var cityOffset = $("#blocksel").offset();
+			//设置下拉框的显示位置
+			$("#menuContent").css({left:cityOffset.left + "px", top:cityOffset.top + cityObj.outerHeight() + "px"}).slideDown("fast");
+			//绑定鼠标的点下事件
+			$("body").bind("mousedown", onBodyDown);
+		}
+		//隐藏下拉框的方法
+	function hideMenu() {
+			$("#menuContent").fadeOut("fast");
+			$("body").unbind("mousedown", onBodyDown);
+		}
+		//判断鼠标点下的位置，是否进行隐藏下拉框的设置
+	function onBodyDown(event) {
+			if (!(event.target.id == "menuContent" || $(event.target).parents("#menuContent").length>0)) {
+				hideMenu();
+			}
+		} 
+	//判断选择的节点是否为父级节点
+	function beforeClick(treeId, treeNode) {
+			var check = (treeNode && !treeNode.isParent);
+			if (!check) alert("只能选择城市...");
+			return check;
+		}
+		//点击事件，如果不是父级节点。设置对应的文本框的值为点击的节点的名称
+		function onClick(e, treeId, treeNode) {
+			var zTree = jQuery.fn.zTree.getZTreeObj("treeSelect"),
+			nodes = zTree.getSelectedNodes(),
+			v = "";
+			id = "";
+			nodes.sort(function compare(a,b){return a.id-b.id;});
+			for (var i=0, l=nodes.length; i<l; i++) {
+				v += nodes[i].name + ",";
+				id += nodes[i].id+","
+			}
+			if (v.length > 0 ) v = v.substring(0, v.length-1);
+			if (id.length > 0 ) id = id.substring(0, id.length-1);
+			var cityObj = $("#blocksel");
+			if($("#blocksel option").length>0){
+			$("#blocksel").empty();
+			}
+			cityObj.append("<option value='"+id+"'>"+v+"</option>");
+			getequip(id);
+			hideMenu();
+		}
+		var key = null;
+	//判断选择的节点是否为父级节点
+	function beforeClick1(treeId, treeNode) {
+			var check = (treeNode && !treeNode.isParent);
+			if (!check) alert("只能选择城市...");
+			return check;
+		}
+		//点击事件，如果不是父级节点。设置对应的文本框的值为点击的节点的名称
+	function onClick1(e, treeId, treeNode) {
+			var zTree = jQuery.fn.zTree.getZTreeObj("blockTree"),
+			nodes = zTree.getSelectedNodes(),
+			w = "";
+			nodes.sort(function compare(a,b){return a.id-b.id;});
+			for (var i=0, l=nodes.length; i<l; i++) {
+				w += nodes[i].id + ",";
+			}
+			if (w.length > 0 ) w = w.substring(0, w.length-1);
+			key = w;
+			createtable();
+		}
+		
+	var datatable=null;
+	//设备表的分页显示
+	function createtable(){
+	if(datatable!=null){
+		datatable.destroy();
+	}
+	datatable=$("#equiptable").DataTable({
+		language:{url:"${request.contextPath}/resource/css/china.json"},
+		paging:true,
+		searching:false,
+		ordering:false,
+		serverSide:true,
+			ajax:{
+			url:"${request.contextPath}/equip/dolist",
+			type:"post",
+			data:{"key":key},
+			datasrc:'data'
+			},
+			columns:[
+			{data:"EQUIP_ID"},
+			{data:"EQUIP_NAME"},
+			{data:"EQUIP_TYPE"},
+			{data:"BLOCK_NAME"},
+			{data:"EQUIP_ID",render:function(data,type,row){
+				return "<a href='javascript:edit("+data+")'>修改</a>|<a href='javascript:del("+data+")'>删除</a>";
+			}}
+			]
+		});
+
+}
+//设备表的添加
+function addequip(){
+	dw.ajax({
+	url:"${request.contextPath}/equip/toadd",
+	type:"post",
+	success:function(msg){
+	bootbox.dialog({
+	title:"添加设备",
+	message:msg
+	});
+	}
+	});
+}
+//设备的修改
+function edit(equipId){
+	dw.ajax({
+	url:"${request.contextPath}/equip/toedit",
+	type:"post",
+	data:{"equipId":equipId},
+	success:function(msg){
+	bootbox.dialog({
+	title:"修改设备信息",
+	message:msg
+	});
+	}
+	});
+}
+
+//删除设备
+function del(equipId){
+bootbox.confirm("你确定要删除吗？",function(result){
+if(result){
+		dw.ajax({
+		url:"${request.contextPath}/equip/dodel",
+		type:"post",
+		data:{"equipId":equipId},
+		dataType:"json",
+		success:function(msg){
+		if(msg.tag){
+		bootbox.alert(msg.message);
+		datatable.draw(false);
+		}
+		}
+		});
+	}
+	});
+}
+//在选择了区块之后联动获取对应的设备
+function getequip(blockNum){
+	dw.ajax({
+		url:"${request.contextPath}/equip/selbyblock",
+		type:"post",
+		data:{"blockNum":blockNum},
+		dataType:"json",
+		success:function(msg){
+		if($("#equipsel option").length>0){
+			$("#equipsel").empty();
+		}
+		for(var i =0;i<msg.length;i++){
+			$("#equipsel").append("<option value='"+msg[i].equipId+"'>"+msg[i].equipName+"</option");
+		}
+		}
+		});
+}
+</script>
+</head>
+<body>
+	<div id="menuContent" class="menuContent"
+		style="display:none; position: absolute;">
+		<ul id="treeSelect" class="ztree" style="margin-top:0; width:160px;"></ul>
+	</div>
+	
+	<div>
+		<ul>
+			区块选择:<select id="blocksel" onclick="showMenu(); return false;" style="width:150px">
+					</select>
+			公司设备选择:
+			<select id="equipsel" style="width:240px">
+			</select>
+		</ul>
+	</div>
+	<div>
+		<ul id="blockTree" class="ztree"></ul>
+	</div>
+	<div id="equip">
+	<a href="javascript:addequip()">添加设备</a>
+	<table id="equiptable" class="display">
+	<thead>
+		<tr>
+		<th class="content">设备编号</th>
+		<th class="content">公司名称</th>
+		<th class="content">设备类型</th>
+		<th class="content">区块名称</th>
+		<th class="content">功能操作</th>
+		</tr>
+	</thead>
+	</table>
+	</div>
+</body>
+</html>

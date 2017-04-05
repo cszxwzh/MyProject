@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqls.dao.zxw.operationlogMapper">
+  <resultMap id="BaseResultMap" type="com.xqls.entity.zxw.operationlog">
+    <id column="OPER_ID" property="operId" />
+    <result column="OPER_DATE"  property="operDate" />
+    <result column="OPER_INFO"  property="operInfo" />
+    <result column="EQUIP_ID"  property="equipId" />
+    <result column="BLOCK_ID"  property="blockId" />
+    <result column="USER_ID"  property="userId" />
+    <result column="OPER_TYPE"  property="operType" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    OPER_ID, OPER_DATE, OPER_INFO, EQUIP_ID, BLOCK_ID, USER_ID,OPER_TYPE
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from OPERATIONLOG
+    where OPER_ID = #{operId}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from OPERATIONLOG
+    where OPER_ID = #{operId}
+  </delete>
+  <insert id="insert" parameterType="com.xqls.entity.zxw.operationlog">
+    <selectKey keyProperty="operId" order="BEFORE" resultType="java.lang.Integer">
+      select SEQ_OPERID.nextval from dual
+    </selectKey>
+    insert into OPERATIONLOG (OPER_ID,OPER_DATE, OPER_INFO, EQUIP_ID, 
+      BLOCK_ID, USER_ID,OPER_TYPE)
+    values (#{operId},#{operDate,jdbcType=DATE}, #{operInfo}, #{equipId}, 
+      #{blockIdL}, #{userId},#{operType})
+  </insert>
+  <insert id="insertSelective" parameterType="com.xqls.entity.zxw.operationlog">
+    <selectKey keyProperty="operId" order="BEFORE" resultType="java.lang.Integer">
+      select SEQ_OPERID.nextval from dual
+    </selectKey>
+    insert into OPERATIONLOG
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="operId !=null">
+      	OPER_ID,
+      </if>
+      <if test="operDate != null">
+        OPER_DATE,
+      </if>
+      <if test="operInfo != null">
+        OPER_INFO,
+      </if>
+      <if test="equipId != null">
+        EQUIP_ID,
+      </if>
+      <if test="blockId != null">
+        BLOCK_ID,
+      </if>
+      <if test="userId != null">
+        USER_ID,
+      </if>
+      <if test="operType != null">
+        OPER_TYPE,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="operId != null">
+        #{operId},
+      </if>
+      <if test="operDate != null">
+        #{operDate,jdbcType=DATE},
+      </if>
+      <if test="operInfo != null">
+        #{operInfo},
+      </if>
+      <if test="equipId != null">
+        #{equipId},
+      </if>
+      <if test="blockId != null">
+        #{blockId},
+      </if>
+      <if test="userId != null">
+        #{userId},
+      </if>
+      <if test="operType != null">
+        #{operType},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.xqls.entity.zxw.operationlog">
+    update OPERATIONLOG
+    <set>
+      <if test="operDate != null">
+        OPER_DATE = #{operDate,jdbcType=DATE},
+      </if>
+      <if test="operInfo != null">
+        OPER_INFO = #{operInfo},
+      </if>
+      <if test="equipId != null">
+        EQUIP_ID = #{equipId},
+      </if>
+      <if test="blockId != null">
+        BLOCK_ID = #{blockId},
+      </if>
+      <if test="userId != null">
+        USER_ID = #{userId},
+      </if>
+      <if test="operType != null">
+        OPER_TYPE = #{operType},
+      </if>
+    </set>
+    where OPER_ID = #{operId}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.xqls.entity.zxw.operationlog">
+    update OPERATIONLOG
+    set OPER_DATE = #{operDate,jdbcType=DATE},
+      OPER_INFO = #{operInfo},
+      EQUIP_ID = #{equipId},
+      BLOCK_ID = #{blockId},
+      USER_ID = #{userId},
+      OPER_TYPE = #{operType}
+    where OPER_ID = #{operId}
+  </update>
+  <select id="selectByPage" parameterType="map" resultMap="BaseResultMap">
+  	select * from (select rownum as r,op.* from (select * from operationlog 
+  	<where>
+  		<if test="startDate!=null ">
+  			OPER_DATE between #{startDate} and #{endDate}
+  		</if>
+  		<if test="types!=null">
+  			and oper_type in 
+  		<foreach collection="types" item="item" index="index"
+            open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+  		</if>
+  		<if test="equipId!=null">
+  			and EQUIP_ID  = #{equipId}
+  		</if>
+  	</where>
+  	order by oper_id) op where rownum&lt;=#{end}) ss where ss.r&gt;#{start}
+  </select>
+  <select id="selectByExport" parameterType="map" resultType="map">
+  	select OP.OPER_ID,OP.OPER_DATE,OP.OPER_INFO,OP.OPER_TYPE,eq.equip_name,eq.equip_type,BL.BLOCK_NAME,su.user_name from operationlog op 
+	LEFT JOIN BLOCK bl ON OP.BLOCK_ID=BL.BLOCK_ID 
+	LEFT JOIN EQUIPMENT eq ON op.equip_id = eq.equip_id
+	LEFT JOIN SYSUSER su ON op.user_id = su.user_id
+  	<where>
+  		<if test="startDate!=null ">
+  			op.OPER_DATE between #{startDate} and #{endDate}
+  		</if>
+  		<if test="types!=null">
+  			and op.oper_type in 
+  		<foreach collection="types" item="item" index="index"
+            open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+  		</if>
+  		<if test="equipId!=null">
+  			and op.EQUIP_ID  = #{equipId}
+  		</if>
+  	</where>
+  	order by oper_id
+  </select>
+  
+  <select id="selectcount" parameterType="map" resultType="int">
+  	select count(*) from operationlog
+  	<where>
+  		<if test="startDate!=null">
+  			OPER_DATE between #{startDate} and #{endDate}
+  		</if>
+  		<if test="types!=null">
+  			 and oper_type in 
+  		<foreach collection="types" item="item" index="index"
+            open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+  		</if>
+  		<if test="equipId!=null">
+  			and EQUIP_ID = #{equipId}
+  		</if>
+  	</where>
+  </select>
+  <insert id="insertOfequip" parameterType="com.xqls.entity.zxw.operationlog" >
+ 	<selectKey keyProperty="operId" order="BEFORE" resultType="java.lang.Integer">
+      select SEQ_OPERID.nextval from dual
+    </selectKey>
+  insert into OPERATIONLOG 
+  <trim prefix="(" suffix=")" suffixOverrides=",">
+   	  <if test="operId !=null">
+      	OPER_ID,
+      </if>
+      <if test="operDate != null">
+        OPER_DATE,
+      </if>
+      <if test="operInfo != null">
+        OPER_INFO,
+      </if>
+      <if test="equipId != null">
+        EQUIP_ID,
+      </if>
+      <if test="operType != null">
+        OPER_TYPE,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="operId != null">
+        #{operId},
+      </if>
+      <if test="operDate != null">
+        #{operDate,jdbcType=DATE},
+      </if>
+      <if test="operInfo != null">
+        #{operInfo},
+      </if>
+      <if test="equipId != null">
+        #{equipId},
+      </if>
+      <if test="operType != null">
+        #{operType},
+      </if>
+    </trim>
+  </insert>
+  <insert id="insertOfuser" parameterType="com.xqls.entity.zxw.operationlog">
+    <selectKey keyProperty="operId" order="BEFORE" resultType="java.lang.Integer">
+      select SEQ_OPERID.nextval from dual
+    </selectKey>
+    insert into OPERATIONLOG
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+     <if test="operId !=null">
+      	OPER_ID,
+      </if>
+      <if test="operDate != null">
+        OPER_DATE,
+      </if>
+      <if test="operInfo != null">
+        OPER_INFO,
+      </if>
+      <if test="userId != null">
+        USER_ID,
+      </if>
+      <if test="operType != null">
+        OPER_TYPE,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="operId != null">
+        #{operId},
+      </if>
+      <if test="operDate != null">
+        #{operDate,jdbcType=DATE},
+      </if>
+      <if test="operInfo != null">
+        #{operInfo},
+      </if>
+      <if test="userId != null">
+        #{userId},
+      </if>
+      <if test="operType != null">
+        #{operType},
+      </if>
+    </trim>
+  </insert>
+</mapper>

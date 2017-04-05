@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>角色添加</title>
+<script type="text/javascript">
+	function dw() {
+	}
+	dw.ajax = function(s) {
+		jQuery.ajax(s);
+	}
+	$(document).ready(function(){
+	showtree("permstree",setting); 
+	});
+	 
+	var setting = {
+	check: {
+				enable: true,
+				chkStyle:"checkbox",
+				chkboxType: { "Y": "s", "N": "s" }
+			},
+			data: {
+				simpleData: {
+					enable: true
+				}
+			}
+	};
+	function showtree(s,setting){
+		dw.ajax({
+		url:"${request.contextPath}/user/dopermstree",
+		data:{"roleid":0},
+		type:"post",
+		dataType:"json",
+		success:function(data){
+		zTreeObj = jQuery.fn.zTree.init($("#"+s),setting, data);
+		}
+		});
+	}
+	
+	function showcheck(){
+	var checknodes ="";
+		var treeObj = jQuery.fn.zTree.getZTreeObj("permstree");
+		var nodes = treeObj.transformToArray(treeObj.getNodes());
+		for(var i =0;i<nodes.length;i++){
+			if(nodes[i].checked){
+			checknodes=checknodes+"{'id':'"+nodes[i].id+"','eid':'"+nodes[i].eid+"','rid':'"+0+"','name':'"+nodes[i].name+"'"+"},"
+			}
+		}
+		dw.ajax({
+		url:"${request.contextPath}/user/doaddroleandperms?rolename="+$("#rolename").val(),
+		type:"post",
+		data:JSON.stringify("["+checknodes.substr(0, checknodes.length-1)+"]"),
+		contentType:"application/json; charset=utf-8",
+		dataType:"json",
+		success:function(msg){
+			if(msg.tag){alert(msg.message);}
+		}
+		});
+	}
+</script>
+</head>
+<body>
+<form action="" method="post">
+角色名称：<input type="text" name="rolename" id="rolename"><br>
+	<div>
+		<ul id="permstree" class="ztree"></ul>
+	</div>
+	<input type="button" id="addbtn" onclick = "showcheck()" value="添加"><input type="reset" value="重置">
+</form>
+</body>
+</html>

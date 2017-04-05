@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>添加设备信息</title>
+	
+  </head>
+ <script type="text/javascript">	
+	$(document).ready(function(){
+		$("#equipType").val("$equipmap.EQUIP_TYPE");
+		showtree3("blocksel_edit",setting4);
+		$("#updatebtn").click(function(){
+			dw.ajax({
+				url:"${request.contextPath}/equip/doedit",
+				type:"post",
+				data:$("#updateform").serialize(),
+				dataType:"json",
+				success:function(msg){
+					if(msg.tag){
+						$(".bootbox-close-button").click();
+						bootbox.alert(msg.message);
+						datatable.draw(true);
+						}else{
+						bootbox.alert(msg.message);		
+						}
+				}
+			});
+		});
+	});
+	//添加页面文本框中下拉tree的设置
+	var setting4 = {
+		view: {
+				dblClickExpand: false
+			},
+		data : {
+			simpleData : {
+				enable : true
+			}
+		},
+		callback : {
+			beforeClick: beforeClick3,
+			onClick: onClick3
+		}
+	};
+	
+	function showtree3(s,set) {
+		dw.ajax({
+					url : "${request.contextPath}/block/treeresult",
+					type : "post",
+					dataType : "json",
+					success : function(data) {
+						//初始化，ztree的显示
+						zTreeObj = jQuery.fn.zTree.init($("#"+s),
+								set, data);
+					}
+				});
+	}
+
+	
+	function beforeClick3(treeId, treeNode) {
+			var check = (treeNode && !treeNode.isParent);
+			if (!check) alert("只能选择城市...");
+			return check;
+		}
+		
+		function onClick3(e, treeId, treeNode) {
+			var zTree = jQuery.fn.zTree.getZTreeObj("blocksel_edit"),
+			nodes = zTree.getSelectedNodes(),
+			v = "";
+			w = "";
+			nodes.sort(function compare(a,b){return a.id-b.id;});
+			for (var i=0, l=nodes.length; i<l; i++) {
+				v += nodes[i].name + ",";
+				w += nodes[i].id + ",";
+			}
+			if (v.length > 0 ) v = v.substring(0, v.length-1);
+			if (w.length > 0 ) w = w.substring(0, w.length-1);
+			var cityObj = $("#blockNum");
+			if($("#blockNum option").length>0){
+			$("#blockNum").empty();
+			}
+			cityObj.append("<option value='"+w+"'>"+v+"</option>");
+			hideMenu3();
+		}
+
+		function showMenu3() {
+			var cityObj = $("#blockNum");
+			var cityOffset = $("#blockNum").position();
+			$("#menuContent_edit").css({left:cityOffset.left + "px", top:cityOffset.top + cityObj.outerHeight()+ "px"}).slideDown("fast");
+			$("body").bind("mousedown", onBodyDown3);
+		}
+		function hideMenu3() {
+			$("#menuContent_edit").fadeOut("fast");
+			$("body").unbind("mousedown", onBodyDown3);
+		}
+		function onBodyDown3(event) {
+			if (!(event.target.id == "menuContent_edit" || $(event.target).parents("#menuContent_edit").length>0)) {
+				hideMenu3();
+			}
+		}
+</script>
+  <body>
+	<form action="#" method="post" id="updateform"> 
+		公司名称：<input type="text" value="$equipmap.EQUIP_NAME" id="equipName" name="equipName"><br><br>
+		<div>
+		设备区块：
+		<select  id="blockNum" name="blockNum" onclick="showMenu3();"style="width:150px" >
+		<option value="$equipmap.BLOCK_NUM">$equipmap.BLOCK_NAME</option>
+		</select>
+		</div><br>
+		设备编号：<input type="text" value="$equipmap.EQUIP_ID" id="equipId" name="equipId"><br><br>
+		设备类型：	
+			<select id="equipType" name="equipType" > 
+			<option value="0">请选择</option>
+			#foreach($param in ${eqlist})
+			<option name="typechoose" value="$param">$param</option>
+			#end
+			</select><br><br>
+		<div id="menuContent_edit" class="menuContent" style="display:none; position: absolute; background-color:snow">
+		<ul id="blocksel_edit" class="ztree" style="margin-top:0; width:160px;"></ul>
+		</div>
+		<input type="button" id="updatebtn" value="修改"><input type="reset" value="重置">
+	</form>
+  </body>
+</html>

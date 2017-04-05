@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>角色权限显示</title>
+<style type="text/css">
+.content{
+	text-align:center;
+}
+</style>
+<script type="text/javascript">
+var datatable=null;
+$(document).ready(function(){
+	createtable();
+	$("#selbtn").click(function(){
+	createtable();
+	});
+});
+
+	//velocity与jquery的美元符号使用异常的处理方式
+	function dw() {
+	}
+	dw.ajax = function(s) {
+		jQuery.ajax(s);
+	}
+
+function createtable(){
+if(datatable!=null){
+	datatable.destroy();
+}
+datatable=$("#roletable").DataTable({
+	language:{url:"${request.contextPath}/resource/css/china.json"},
+	paging:true,
+	searching:false,
+	ordering:false,
+	serverSide:true,
+		ajax:{
+		url:"${request.contextPath}/user/dorolelist",
+		type:"post",
+		data:{"rolename":$("#rolename").val()},
+		datasrc:'data'
+		},
+		columns:[
+		{"data": null,"targets": 0},
+		{data:"ROLENAME"},
+		{data:"INWATER"},
+		{data:"OUTWATER"},
+		{data:"CLOSEACCOUNT"},
+		{data:"SYSSET"},
+		{data:"ROLEID",render:function(data,type,row){
+		 return "<a href='javascript:distribution("+data+")'>分配权限</a>";
+		}}
+		],"fnDrawCallback": function(){
+	　　var api = this.api();
+	　　var startIndex= api.context[0]._iDisplayStart;//获取到本页开始的条数
+	　　api.column(0).nodes().each(function(cell, i) {
+	　　　　cell.innerHTML = startIndex + i + 1;
+	　　});
+}
+	});
+
+}
+//分配权限
+function distribution(roleid){
+	dw.ajax({
+		url:"${request.contextPath}/user/permstree",
+		type:"post",
+		data:{"roleid":roleid},
+		success:function(msg){
+			bootbox.dialog({
+				title:"分配权限",
+				buttons: {  
+                    Cancel: {  
+                        label: "Cancel",  
+                        className: "btn-default",  
+                        callback: function () {  
+                             
+                        }  
+                    }  
+                    , OK: {  
+                        label: "OK",  
+                        className: "btn-primary",  
+                        callback: function () {
+                        	showcheck();  
+                            createtable();
+                        }  
+                    }  
+                } ,
+				message:msg
+			});
+		}
+	});
+	}
+	
+	
+</script>
+</head>
+<body>
+<a href="${request.contextPath}/user/toroleadd">角色添加</a>
+<form action="#" method="post">
+角色名：<input type="text" id="rolename">
+<input type="button" id="selbtn" value="查询">
+<input type="reset" value="重置">
+</form>
+
+<table id="roletable" class="display">
+	<thead>
+	<tr>
+		<th class="content">序号</th>
+		<th class="content">角色名称</th>
+		<th class="content">取水口</th>
+		<th class="content">排放口</th>
+		<th class="content">费用结算</th>
+		<th class="content">系统配置</th>
+		<th class="content">分配权限</th>
+	</tr>
+	</thead>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>用户添加</title>
+<script type="text/javascript">
+$(document).ready(function(){
+	showtree1("blocksel_add",setting1);
+	$("#addbtn").click(function(){
+		dw.ajax({
+			url:"${request.contextPath}/user/douseradd",
+			type:"post",
+			data:$("#addform").serialize(),
+			dataType:"json",
+			success:function(msg){
+			if(msg.tag){
+			$(".bootbox-close-button").click();
+			bootbox.alert(msg.message);
+			datatable.draw(true);
+			}else{
+			bootbox.alert(msg.message);		
+			}
+			}
+		});
+	});
+});
+//添加页面文本框中下拉tree的设置
+	var setting1 = {
+		view: {
+				dblClickExpand: false
+			},
+		data : {
+			simpleData : {
+				enable : true
+			}
+		},
+		callback : {
+			beforeClick: beforeClick1,
+			onClick: onClick1
+		}
+	};
+	
+	function showtree1(s,set) {
+		dw.ajax({
+					url : "${request.contextPath}/block/treeresult",
+					type : "post",
+					dataType : "json",
+					success : function(data) {
+						//初始化，ztree的显示
+						zTreeObj = jQuery.fn.zTree.init($("#"+s),
+								set, data);
+					}
+				});
+	}
+
+	
+	function beforeClick1(treeId, treeNode) {
+			var check = (treeNode && !treeNode.isParent);
+			if (!check) alert("只能选择城市...");
+			return check;
+		}
+		
+		function onClick1(e, treeId, treeNode) {
+			var zTree = jQuery.fn.zTree.getZTreeObj("blocksel_add"),
+			nodes = zTree.getSelectedNodes(),
+			v = "";
+			w = "";
+			nodes.sort(function compare(a,b){return a.id-b.id;});
+			for (var i=0, l=nodes.length; i<l; i++) {
+				v += nodes[i].name + ",";
+				w += nodes[i].id + ",";
+			}
+			if (v.length > 0 ) v = v.substring(0, v.length-1);
+			if (w.length > 0 ) w = w.substring(0, w.length-1);
+			var cityObj = $("#blocknum");
+			if($("#blocknum option").length>0){
+			$("#blocknum").empty();
+			}
+			cityObj.append("<option value='"+w+"'>"+v+"</option>");
+			hideMenu1();
+		}
+
+		function showMenu1() {
+			var cityObj = $("#blocknum");
+			var cityOffset = $("#blocknum").position();
+			$("#menuContent_add").css({left:cityOffset.left + "px", top:cityOffset.top + cityObj.outerHeight()+ "px"}).slideDown("fast");
+
+			$("body").bind("mousedown", onBodyDown1);
+		}
+		function hideMenu1() {
+			$("#menuContent_add").fadeOut("fast");
+			$("body").unbind("mousedown", onBodyDown1);
+		}
+		function onBodyDown1(event) {
+			if (!(event.target.id == "menuContent_add" || $(event.target).parents("#menuContent_add").length>0)) {
+				hideMenu1();
+			}
+		}
+</script>
+</head>
+<body>
+<form id="addform" method="post">
+	用户名称:<input type="text" id="username" name="username"><br><br>
+	用户密码:<input type="text" id="password" name="password"><br><br>
+	所属区块:<select id="blocknum" name="blocknum" onclick="showMenu1()" style="width:150px">
+			</select>
+	<div id="menuContent_add" class="menuContent" style="display:none; position: absolute; background-color:snow">
+			<ul id="blocksel_add" class="ztree" style="margin-top:0; width:160px;"></ul>
+	</div><br><br>
+	用户号码:<input type="text" id="phonenum" name="phonenum"><br><br>
+	报警级别:<select id="warnlevel" name="warnlevel" style="width:150px">
+			<option value="0">请选择</option>
+			#foreach($param in ${warn.entrySet()})
+			<option value="$param.key">$param.value</option>
+			#end
+			</select></select><br><br>
+	用户角色:<select id="roleid" name="roleid" style="width:150px"><br><br>
+	<option value="0">请选择</option>
+		#foreach($param in ${rolelist})
+		<option value="$param.ROLEID">$param.ROLENAME</option>
+		#end
+	</select><br><br>
+	<input type="button" value="添加" id="addbtn">
+	<input type="reset" value="重置">
+</form>
+</body>
+</html>

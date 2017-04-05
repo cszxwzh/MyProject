@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqls.dao.zxw.equipmentMapper">
+  <resultMap id="BaseResultMap" type="com.xqls.entity.zxw.equipment">
+    <id column="EQUIP_ID"  property="equipId" />
+    <result column="EQUIP_NAME"  property="equipName" />
+    <result column="EQUIP_TYPE"  property="equipType" />
+    <result column="BLOCK_ID"  property="blockId" />
+  </resultMap>
+  
+  <sql id="Base_Column_List">
+    EQUIP_ID, EQUIP_NAME, EQUIP_TYPE, BLOCK_ID
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from EQUIPMENT
+    where EQUIP_ID = #{equipId}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from EQUIPMENT
+    where EQUIP_ID = #{equipId}
+  </delete>
+  <insert id="insert" parameterType="com.xqls.entity.zxw.equipment">
+    insert into EQUIPMENT (EQUIP_ID,EQUIP_NAME, EQUIP_TYPE, BLOCK_ID
+      )
+    values (#{equipId},#{equipName}, #{equipType}, #{blockId}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.xqls.entity.zxw.equipment">
+    <selectKey keyProperty="equipId" order="BEFORE" resultType="java.lang.Integer">
+      select SEQ_EQUIPID.nextval from dual
+    </selectKey>
+    insert into EQUIPMENT
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="equipId!=null">
+      	EQUIP_ID,
+      </if>
+      <if test="equipName != null">
+        EQUIP_NAME,
+      </if>
+      <if test="equipType != null">
+        EQUIP_TYPE,
+      </if>
+      <if test="blockId != null">
+        BLOCK_ID,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="equipId!=null">
+      	#{equipId},
+      </if>
+      <if test="equipName != null">
+        #{equipName},
+      </if>
+      <if test="equipType != null">
+        #{equipType},
+      </if>
+      <if test="blockId != null">
+        #{blockId},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.xqls.entity.zxw.equipment">
+    update EQUIPMENT
+    <set>
+      <if test="equipName != null">
+        EQUIP_NAME = #{equipName},
+      </if>
+      <if test="equipType != null">
+        EQUIP_TYPE = #{equipType},
+      </if>
+      <if test="blockId != null">
+        BLOCK_ID = #{blockId},
+      </if>
+    </set>
+    where EQUIP_ID = #{equipId}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.xqls.entity.zxw.equipment">
+    update EQUIPMENT
+    set EQUIP_NAME = #{equipName},
+      EQUIP_TYPE = #{equipType},
+      BLOCK_ID = #{blockId}
+    where EQUIP_ID = #{equipId}
+  </update>
+  <select id="selectAll" resultMap="BaseResultMap">
+  	select * from EQUIPMENT order by equip_id
+  </select>
+  <select id="selectPage" parameterType="map" resultType="map">
+	 select * from (select rownum r,eq.* from (select * from EQUIPMENT equ left join block b on equ.block_id = b.block_id 
+	 <where>
+	 <if test="blockNum!=null and blockNum!=''">
+	 	b.BLOCK_NUM = #{blockNum}
+	 </if>
+	 </where>
+	 order by equip_id) eq where rownum&lt;=#{index}) ss where ss.r&gt;#{start}
+  </select>
+  <select id="selectCount" parameterType="map" resultType="int">
+  	select count(*) from EQUIPMENT equ LEFT JOIN BLOCK b ON equ.block_id = b.block_id
+  	<where>
+  		<if test="blockNum!=null and blockNum!=''">
+	 		b.BLOCK_NUM = #{blockNum}
+	 </if>
+  	</where>
+  </select>
+  <select id="selectById" parameterType="int" resultType="map">
+  	select * from equipment equ LEFT JOIN BLOCK b ON equ.block_id = b.block_id where equ.equip_id = #{_parameter}
+  </select>
+  <select id="selectByBlock" parameterType="string"  resultMap="BaseResultMap">
+  	select * from equipment equ LEFT JOIN BLOCK b ON equ.block_id = b.block_id where b.BLOCK_NUM = #{_parameter}
+  </select>
+</mapper>

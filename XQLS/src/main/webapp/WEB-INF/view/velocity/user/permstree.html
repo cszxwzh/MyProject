@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>权限树</title>
+<script type="text/javascript">
+	//velocity与jquery的美元符号使用异常的处理方式
+	function dw() {
+	}
+	dw.ajax = function(s) {
+		jQuery.ajax(s);
+	}
+	$(document).ready(function(){
+	showtree("permstree",setting); 
+	});
+	 
+	var setting = {
+	check: {
+				enable: true,
+				chkStyle:"checkbox",
+				chkboxType: { "Y": "s", "N": "s" }
+			},
+			data: {
+				simpleData: {
+					enable: true
+				}
+			}
+	};
+	function showtree(s,setting){
+		dw.ajax({
+		url:"${request.contextPath}/user/dopermstree",
+		data:{"roleid":$("#roleid").val()},
+		type:"post",
+		dataType:"json",
+		success:function(data){
+		zTreeObj = jQuery.fn.zTree.init($("#"+s),setting, data);
+		}
+		});
+	}
+	
+	function showcheck(){
+	var checknodes ="";
+		var treeObj = jQuery.fn.zTree.getZTreeObj("permstree");
+		var nodes = treeObj.transformToArray(treeObj.getNodes());
+		for(var i =0;i<nodes.length;i++){
+			if(nodes[i].checked){
+			checknodes=checknodes+"{'id':'"+nodes[i].id+"','eid':'"+nodes[i].eid+"','rid':'"+$("#roleid").val()+"','name':'"+nodes[i].name+"'"+"},"
+			}
+		}
+		dw.ajax({
+		url:"${request.contextPath}/user/changperms?rid="+$("#roleid").val(),
+		type:"post",
+		data:JSON.stringify("["+checknodes.substr(0, checknodes.length-1)+"]"),
+		contentType:"application/json; charset=utf-8",
+		dataType:"json",
+		success:function(msg){
+			if(msg.tag){alert(msg.message);}
+		}
+		});
+	}
+//
+</script>
+</head>
+<body>
+	<div>
+		<ul id="permstree" class="ztree"></ul>
+	</div>
+	<input type="text" id="roleid" style="display:none"  value="$roleid"> 
+	<!-- <input type="button" value="提交" onclick="showcheck()"> -->
+</body>
+</html>

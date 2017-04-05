@@ -1,0 +1,14 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<h3>欢迎用户登录！</h3>
+#if($shiro.isAuthenticated())
+	<h3>$shiro.getPrincipal()</h3>
+#end
+</body>
+</html>

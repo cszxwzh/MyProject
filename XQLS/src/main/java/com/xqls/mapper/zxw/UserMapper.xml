@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqls.dao.zxw.UserMapper">
+  <resultMap id="BaseResultMap" type="com.xqls.entity.zxw.User">
+    <id column="USERID"  property="userid" />
+    <result column="USERNAME" property="username" />
+    <result column="PASSWORD"  property="password" />
+    <result column="ROLEID"  property="roleid" />
+    <result column="BLOCKID"  property="blockid" />
+    <result column="PHONENUM"  property="phonenum" />
+    <result column="WARNLEVEL"  property="warnlevel" />
+  </resultMap>
+  
+  <sql id="Base_Column_List">
+    USERID, USERNAME, PASSWORD, ROLEID,BLOCKID,PHONENUM,WARNLEVEL
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from LOGINUSERS
+    where USERID = #{userid,jdbcType=DECIMAL}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from LOGINUSERS
+    where USERID = #{userid}
+  </delete>
+  <insert id="insert" parameterType="com.xqls.entity.zxw.User">
+    <selectKey keyProperty="userid" order="BEFORE" resultType="java.lang.Integer">
+      select SEQ_USER.nextval from dual
+    </selectKey>
+    insert into LOGINUSERS (USERID,USERNAME, PASSWORD, ROLEID,BLOCKID,PHONENUM,WARNLEVEL
+      )
+    values (#{userid},#{username}, #{password}, #{roleid},#{blockid},#{phonenum},#{warnlevel}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.xqls.entity.zxw.User">
+    <selectKey keyProperty="userid" order="BEFORE" resultType="java.lang.Integer">
+      Orcale
+    </selectKey>
+    insert into LOGINUSERS
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="username != null">
+        USERNAME,
+      </if>
+      <if test="password != null">
+        PASSWORD,
+      </if>
+      <if test="roleid != null">
+        ROLEID,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="username != null">
+        #{username},
+      </if>
+      <if test="password != null">
+        #{password},
+      </if>
+      <if test="roleid != null">
+        #{roleid},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.xqls.entity.zxw.User">
+    update LOGINUSERS
+    <set>
+      <if test="username != null">
+        USERNAME = #{username},
+      </if>
+      <if test="password != null">
+        PASSWORD = #{password},
+      </if>
+      <if test="roleid != null">
+        ROLEID = #{roleid},
+      </if>
+    </set>
+    where USERID = #{userid}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.xqls.entity.zxw.User">
+    update LOGINUSERS
+    set USERNAME = #{username},
+      PASSWORD = #{password},
+      ROLEID = #{roleid},
+      BLOCKID=#{blockid},
+      PHONENUM=#{phonenum},
+      WARNLEVEL=#{warnlevel}
+    where USERID = #{userid}
+  </update>
+  <select id="selectByName" parameterType="string" resultMap="BaseResultMap">
+  	select * from loginusers where username = #{_parameter}
+  </select>
+  <select id="selectRoleByName" parameterType="string" resultType="string">
+  	select r.rolename from loginusers u,userrole r where u.roleid=r.roleid and u.username = #{_parameter}
+  </select>
+  <select id="selectPermsByName" parameterType="string" resultType="string">
+  	select r.rolename from loginusers u,userrole r,userperms p,roleperms rp where u.roleid=r.roleid and r.roleid=rp.roleid and rp.permsid=p.permsid and u.username = #{_parameter}
+  </select>
+  <!-- 用户表的分页数据查询  -->
+  <select id="selectUserByPage" parameterType="map" resultType="map">
+  	select * from
+  (select rownum num,s.* from
+  (select u.*,r.rolename,b.block_name from loginusers u left join userrole r on u.roleid=r.roleid left join block b on u.blockid=b.block_id
+	<where>
+		<if test="username!=null and username!=''">
+			u.username like '%'||#{username}||'%'
+		</if>
+		<if test="rolename!=null and rolename!=''">
+			r.rolename like '%'||#{rolename}||'%'
+		</if>
+		<if test="blockname!=null and blockname!=''">
+			b.block_name like '%'||#{blockname}||'%'
+		</if>
+	</where>
+	) s where rownum &lt;=#{index}) ss
+	where ss.num&gt;#{start}
+  </select>
+  <!-- 用户表的分页的记录数查询 -->
+  <select id="selectUserCount" parameterType="map" resultType="int">
+  	select count(*) from loginusers u left join userrole r on u.roleid=r.roleid left join block b on u.blockid=b.block_id
+  	<where>
+		<if test="username!=null and username!=''">
+			u.username like '%'||#{username}||'%'
+		</if>
+		<if test="rolename!=null and rolename!=''">
+			r.rolename like '%'||#{rolename}||'%'
+		</if>
+		<if test="blockname!=null and blockname!=''">
+			b.block_name like '%'||#{blockname}||'%'
+		</if>
+	</where>
+  </select>
+  <select id="selectRoles" resultType="map">
+  	select * from userrole
+  </select>
+  <select id="selectUserById" parameterType="int" resultType="map">
+  	select * from loginusers  u left join userrole r on u.roleid=r.roleid left join block b on u.blockid=b.block_id where u.userid=#{userid}
+  </select>
+  
+  <!-- 角色表的分页显示的数据查询 -->
+  <select id="selectRoleByPage" parameterType="map" resultType="map">
+  	select * from 
+  	(select rownum num,s.* from
+  	(select * from ROLEPERMSLIST 
+  	<where>
+  		<if test="rolename !=null and rolenum!=''">
+  			rolename like '%'||#{rolename}||'%'
+  		</if>
+  	</where>
+  	) s where rownum&lt;=#{index}) ss where ss.num &gt;#{start}
+  </select>
+  <!-- 角色表的分页显示的 记录数查询 -->
+  <select id="selectRoleCount" parameterType="map" resultType="int">
+  	select count(*) from ROLEPERMSLIST
+  	<where>
+  		<if test="rolename !=null and rolenum!=''">
+  			rolename like '%'||#{rolename}||'%'
+  		</if>
+  	</where>
+  </select>
+  <!-- 搜索所有的权限，用于显示权限的树形结构 -->
+  <select id="selectAllPerms" resultType="map">
+  	select * from USERPERMS
+  </select>
+ <!-- 通过角色的id搜索角色拥有的所有权限 -->
+  <select id="selectPermsByRoleid" parameterType="int" resultType="map">
+  	select * from roleperms rp  left join USERPERMS u on u.permsid=rp.permsid  where roleid= #{_parameter}
+  </select>
+  <!-- 权限授予时 查询改权限是否已经存在 -->
+  <select id="selectByRoleAndPerms" parameterType="selectPerms" resultType="map">
+  	select * from ROLEPERMS where roleid=#{rid} and permsid =#{eid}
+  </select>
+  <!-- 角色权限的插入 -->
+  <insert id="insertRoleAndPerms" parameterType="selectPerms">
+  	insert into ROLEPERMS (roleid,permsid) values (#{rid},#{eid})
+  </insert>
+  <!-- 角色权限的删除 -->
+  <delete id="deletePermsByRole" parameterType="int">
+  	delete from ROLEPERMS where roleid = #{rid}
+  </delete>
+  <!-- 角色的插入 -->
+  <insert id="insertRole" parameterType="role" >
+  	<selectKey keyColumn="roleid" order="BEFORE" keyProperty="roleid" resultType="int">
+  		select seq_role.nextval from dual
+  	</selectKey>
+  		insert into userrole (roleid,rolename) values(#{roleid},#{rolename})
+  </insert>
+</mapper>

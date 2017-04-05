@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>操作记录显示</title>
+<style type="text/css">
+.content{
+text-align:center;
+}
+</style>
+<script type="text/javascript">
+var datatable = null;
+var types = "";
+
+$(document).ready(function(){
+createtable();
+$("#selbtn").click(function(){
+	gettype();
+	createtable();
+});
+});
+function createtable(){
+if(datatable!=null){
+	datatable.destroy();
+}
+datatable=$("#opertable").DataTable({
+	language:{url:"${request.contextPath}/resource/css/china.json"},
+	paging:true,
+	searching:false,
+	ordering:false,
+	serverSide:true,
+		ajax:{
+		url:"${request.contextPath}/oper/dolist",
+		type:"post",
+		data:{
+				starttime:$("#starttime").val(),
+				endtime:$("#endtime").val(),
+				"types":types,
+				"equipId":$("#selequip").val()
+				},
+		datasrc:'data'
+		},
+		columns:[
+		{"data": null,"targets": 0},
+		{data:"operDate"},
+		{data:"operInfo"}
+		],
+		"fnDrawCallback": function(){
+	　　var api = this.api();
+	　　var startIndex= api.context[0]._iDisplayStart;//获取到本页开始的条数
+	　　api.column(0).nodes().each(function(cell, i) {
+	　　　　cell.innerHTML = startIndex + i + 1;
+	　　});
+}
+	});
+
+}
+function gettype(){
+if(types!=null){
+types="";
+}
+	var type= $("[name='typechoose']");
+	var j = 0;
+	for(var i=0;i<type.length;i++){
+		if(type[i].checked){
+			types=types+","+type[i].value
+		}
+	}
+	return types;
+}
+
+function exportexecl(){
+	window.open("${request.contextPath}/oper/doexport?starttime="+$("#starttime").val()+"&endtime"+$("#endtime").val()+"&types="+types+"&equipId="+$("#selequip").val());
+}
+</script>
+</head>
+<body>
+<form action="#" method="post">
+开始时间：<input type="text" id="starttime" onclick="WdatePicker({dateFmt:'yyyy-MM-dd' ,maxDate:'#F{$dp.$D(\'endtime\')}'})">
+结束时间：<input type="text" id="endtime" onclick="WdatePicker({dateFmt:'yyyy-MM-dd' ,minDate:'#F{$dp.$D(\'starttime\')}'})">
+#foreach($param in ${opertype.entrySet()})
+<input type="checkbox" name="typechoose" value="$param.key">$param.value
+#end
+<select id="selequip" name="selequip">
+<option value="0">请选择</option>
+#foreach($equip in $elist)
+<option value="$equip.equipId">$equip.equipName</option>
+#end
+</select>
+<input type="button" id="selbtn" value="搜索"><input type="reset" id="resbtn" value="重置">
+</form>
+<a href="javascript:exportexecl();">导出excel文件</a>
+<table id="opertable" class="display">
+	<thead>
+		<tr>
+		<th class="content">序号</th>
+		<th class="content">记录时间</th>
+		<th class="content">记录内容</th>
+		</tr>
+	</thead>
+</table>
+<a href="${request.contextPath}/oper/toaddlog">添加操作记录的测试</a>
+</body>
+</html>

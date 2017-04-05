@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>添加记录</title>
+<script type="text/javascript">
+$(document).ready(function(){
+	$("#addbtn").click(function(){
+	dw.ajax({
+			url:"${request.contextPath}/oper/doaddlog",
+			type:"post",
+			data:$("#addform").serialize(),
+			dataType:"json",
+			success:function(msg){
+				if(msg.tag){
+					$(".bootbox-close-button").click();
+					bootbox.alert(msg.message);
+					datatable.draw(true);
+				}else{
+					bootbox.alert(msg.message);
+				}
+			}
+		});
+	});
+});
+ function dw(){}
+dw.ajax=function(s){ jQuery.ajax(s); 
+}
+</script>
+</head>
+<body>
+	<form action="" method="post" id="addform">
+		操作日期：<input type="text" id="operDate" name="operDate" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})"><br><br> 
+		记录内容：<input type="text" id="operInfo" name="operInfo"> <br><br>
+		设备编号： <select id="equipId" name="equipId">
+					#foreach($equip in $elist)
+					<option value="$equip.equipId">$equip.equipName</option> 
+					#end
+				</select> <br><br>
+		操作人员：<input type="text" id="userId" name="userId"> <br><br>
+		操作类型：<select id="operType" name="operType"> 
+					#foreach($param in ${opertype.entrySet()})
+					<option value="$param.key">$param.value </option>
+					#end
+				</select><br><br>
+				<input type="button" id="addbtn" value="添加">
+				<input type="reset" value="重置">
+	</form>
+</body>
+</html>

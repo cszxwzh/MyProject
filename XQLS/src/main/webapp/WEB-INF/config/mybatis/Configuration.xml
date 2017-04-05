@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE configuration
+    PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+<settings>
+	<!-- 使用map收集数据的时候，如果没有对应的列值，也要在map中装入对应的列名，只是设置对应的列值为null -->
+	<setting name="callSettersOnNulls" value="true"/>
+</settings>
+</configuration>

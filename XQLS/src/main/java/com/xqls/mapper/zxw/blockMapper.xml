@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqls.dao.zxw.blockMapper">
+  <resultMap id="BaseResultMap" type="com.xqls.entity.zxw.block">
+    <id column="BLOCK_ID"  property="blockId" />
+    <result column="BLOCK_NAME"  property="blockName" />
+    <result column="BLOCK_NUM"  property="blockNum" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    BLOCK_ID, BLOCK_NAME, BLOCK_NUM
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from BLOCK
+    where BLOCK_ID = #{blockId}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from BLOCK
+    where BLOCK_ID = #{blockId}
+  </delete>
+  <insert id="insert" parameterType="com.xqls.entity.zxw.block">
+    <selectKey keyProperty="blockId" order="BEFORE" resultType="java.lang.Integer">
+      select SEQ_BLOCKID.nextval from dual
+    </selectKey>
+    insert into BLOCK (BLOCK_ID,BLOCK_NAME, BLOCK_NUM)
+    values (#{blockId},#{blockName}, #{blockNum})
+  </insert>
+  <insert id="insertSelective" parameterType="com.xqls.entity.zxw.block">
+    <selectKey keyProperty="blockId" order="BEFORE" resultType="java.lang.Integer">
+      select SEQ_BLOCKID.nextval from dual
+    </selectKey>
+    insert into BLOCK
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="blockName != null">
+        BLOCK_NAME,
+      </if>
+      <if test="blockNum != null">
+        BLOCK_NUM,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="blockName != null">
+        #{blockName},
+      </if>
+      <if test="blockNum != null">
+        #{blockNum},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.xqls.entity.zxw.block">
+    update BLOCK
+    <set>
+      <if test="blockName != null">
+        BLOCK_NAME = #{blockName},
+      </if>
+      <if test="blockNum != null">
+        BLOCK_NUM = #{blockNum},
+      </if>
+    </set>
+    where BLOCK_ID = #{blockId}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.xqls.entity.zxw.block">
+    update BLOCK
+    set BLOCK_NAME = #{blockName},
+      BLOCK_NUM = #{blockNum}
+    where BLOCK_ID = #{blockId}
+  </update>
+  <select id="selectAll" resultMap="BaseResultMap">
+  	select * from block order by block_id
+  </select>
+  <select id="selectByNum" parameterType="string" resultMap="BaseResultMap">
+  	select * from block 
+  	<where>
+  		BLOCK_NUM =#{_parameter}
+  	</where>
+  </select>
+  <select id="selectByName" parameterType="string" resultMap="BaseResultMap">
+  	select * from block 
+  	<where>
+  		BLOCK_NAME = #{blockName}
+  	</where>
+  </select>
+  <select id="selectByNumAndName" parameterType="com.xqls.entity.zxw.block" resultMap="BaseResultMap">
+  	select * from block 
+  	<where>
+  		BLOCK_NUM =#{blockNum} and BLOCK_NAME = #{blockName}
+  	</where>
+  </select>
+  <delete id="deleteByNum" parameterType="string">
+  	delete from block where BLOCK_NUM =#{_parameter}
+  </delete>
+  <update id="updateByNum" parameterType="com.xqls.entity.zxw.block">
+  	update block set BLOCK_NAME = #{blockName} where BLOCK_NUM =#{blockNum}
+  </update>
+  <select id="seletSameNum" parameterType="string" resultType="int">
+  	select count(block_id) from block
+  	<where>
+  		block_num like '%'||#{_paramter}||'_%'
+  	</where>
+  </select>
+</mapper>

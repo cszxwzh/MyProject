@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>MyHtml.html</title>
+
+ <script type="text/javascript">
+  	$(document).ready(function (){
+  	showtree2("blocksel_add",setting3);
+	$("#addbtn").click(function(){
+		dw.ajax({
+			url:"${request.contextPath}/equip/doadd",
+			type:"post",
+			data:$("#addform").serialize(),
+			dataType:"json",
+			success:function(msg){
+			if(msg.tag){
+			$(".bootbox-close-button").click();
+			bootbox.alert(msg.message);
+			datatable.draw(true);
+			}else{
+			bootbox.alert(msg.message);		
+			}
+			}
+		});
+	});
+});
+//添加页面文本框中下拉tree的设置
+	var setting3 = {
+		view: {
+				dblClickExpand: false
+			},
+		data : {
+			simpleData : {
+				enable : true
+			}
+		},
+		callback : {
+			beforeClick: beforeClick2,
+			onClick: onClick2
+		}
+	};
+	
+	function showtree2(s,set) {
+		dw.ajax({
+					url : "${request.contextPath}/block/treeresult",
+					type : "post",
+					dataType : "json",
+					success : function(data) {
+						//初始化，ztree的显示
+						zTreeObj = jQuery.fn.zTree.init($("#"+s),
+								set, data);
+					}
+				});
+	}
+/* 		//velocity与jquery的美元符号使用异常的处理方式
+	function dw() {
+	}
+	dw.ajax = function(s) {
+		jQuery.ajax(s);
+	} */
+	
+	function beforeClick2(treeId, treeNode) {
+			var check = (treeNode && !treeNode.isParent);
+			if (!check) alert("只能选择城市...");
+			return check;
+		}
+		
+		function onClick2(e, treeId, treeNode) {
+			var zTree = jQuery.fn.zTree.getZTreeObj("blocksel_add"),
+			nodes = zTree.getSelectedNodes(),
+			v = "";
+			w = "";
+			nodes.sort(function compare(a,b){return a.id-b.id;});
+			for (var i=0, l=nodes.length; i<l; i++) {
+				v += nodes[i].name + ",";
+				w += nodes[i].id + ",";
+			}
+			if (v.length > 0 ) v = v.substring(0, v.length-1);
+			if (w.length > 0 ) w = w.substring(0, w.length-1);
+			var cityObj = $("#blockNum");
+			if($("#blockNum option").length>0){
+			$("#blockNum").empty();
+			}
+			cityObj.append("<option value='"+w+"'>"+v+"</option>");
+			hideMenu2();
+		}
+
+		function showMenu2() {
+			var cityObj = $("#blockNum");
+			var cityOffset = $("#blockNum").position();
+			$("#menuContent_add").css({left:cityOffset.left + "px", top:cityOffset.top + cityObj.outerHeight()+ "px"}).slideDown("fast");
+
+			$("body").bind("mousedown", onBodyDown2);
+		}
+		function hideMenu2() {
+			$("#menuContent_add").fadeOut("fast");
+			$("body").unbind("mousedown", onBodyDown2);
+		}
+		function onBodyDown2(event) {
+			if (!(event.target.id == "menuContent_add" || $(event.target).parents("#menuContent_add").length>0)) {
+				hideMenu2();
+			}
+		}
+  </script>
+</head>
+<body>
+<div>
+	<form action="#" method="post" id="addform">
+		公司名称：<input type="text" id="equipName" name="equipName"><br><br> 
+		<div id="blockseldiv">
+		设备区块：
+			<select id="blockNum" onclick="showMenu2();return false" name="blockNum" style="width:150px"></select> 
+		</div><br>
+		设备编号：<input type="text" id="equipId" name="equipId"><br><br> 
+		设备类型： 
+			<select id="equipType" name="equipType"> 
+			#foreach($param in ${eqlist})
+			<option name="typechoose" value="$param">$param</option>
+			#end
+			</select> <br><br>
+		<div id="menuContent_add" class="menuContent" style="display:none; position: absolute; background-color:snow">
+			<ul id="blocksel_add" class="ztree" style="margin-top:0; width:160px;"></ul>
+		</div>
+		<div>
+		<input type="button" id="addbtn" value="添加"><input type="reset" value="重置">
+		</div>
+	
+	
+	</form>
+	</div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        ">
+	<mvc:annotation-driven>
+	<!-- 设置对应的静态资源，不通过spring mvc的控制进行跳转 -->
+	<!-- 类似于：/img/** 的url请求的资源都到/img/目录下查找 -->
+	</mvc:annotation-driven>
+	<context:component-scan base-package="com.clsteach.contorl"></context:component-scan>
+	<mvc:resources location="/resource/" mapping="/resource/**" />
+	<mvc:resources location="/images/" mapping="/images/**" />
+
+	<bean id="jspViewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<!-- 将逻辑视图加上前缀和后缀的属性之后得到，物理视图的地址，系统实现默认的转发 -->
+		<property name="prefix" value="/WEB-INF/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	
+	<!-- 用于将对象转换为json -->
+	<!-- 处理中文乱码 -->
+	<bean id="stringConverter"
+		class="org.springframework.http.converter.StringHttpMessageConverter">
+		<property name="supportedMediaTypes">
+			<list>
+				<value>text/plain;charset=UTF-8</value>
+			</list>
+		</property>
+	</bean>
+	<!-- 调用架包中的方法进行对象到json的数据转换 -->
+	<bean id="jsonConverter"
+		class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"></bean>
+	<!-- 对标识了@responebody的时候，使用下面的方法进行处理 -->
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+		<property name="messageConverters">
+			<list>
+				<ref bean="stringConverter" />
+				<ref bean="jsonConverter" />
+			</list>
+		</property>
+	</bean>
+
+</beans>

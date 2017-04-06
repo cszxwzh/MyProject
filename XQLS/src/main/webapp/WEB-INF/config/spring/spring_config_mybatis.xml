@@ -102,6 +102,10 @@
 			<value>
 				  /user/tologin=anon
                   /admin*=authc
+                  /block/*=authc
+                  /oper/*=authc
+                  /equip/*=authc
+                  /user/success=authc
                   /test=roles[test]
                   /parttest=perms["test:create"]
 			</value>

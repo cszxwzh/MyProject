@@ -25,7 +25,6 @@ public class MyRealm extends AuthorizingRealm{
 			authInfo.setRoles(userService.selRoleByName(username));
 			authInfo.setStringPermissions(userService.selPermsByName(username));
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return authInfo;

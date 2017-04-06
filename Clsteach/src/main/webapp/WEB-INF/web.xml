@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+  <display-name>Clsteach</display-name>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+  <filter>
+  <filter-name>CharstFilter</filter-name>
+  <filter-class>com.clsteach.filter.CharstFilter</filter-class>
+  </filter>
+  <filter>
+  <filter-name>loginFilter</filter-name>
+  <filter-class>com.clsteach.filter.LoginFilter</filter-class>
+  </filter>
+  <filter-mapping>
+  <filter-name>loginFilter</filter-name>
+  <url-pattern>/jsp/cls/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+  <filter-name>loginFilter</filter-name>
+  <url-pattern>/jsp/teach/*</url-pattern>
+  </filter-mapping>
+    <filter-mapping>
+  <filter-name>loginFilter</filter-name>
+  <url-pattern>/jsp/stu/*</url-pattern>
+  </filter-mapping>
+    <filter-mapping>
+  <filter-name>loginFilter</filter-name>
+  <url-pattern>/jsp/loginuser/user*</url-pattern>
+  </filter-mapping>
+  
+  <filter-mapping>
+  <filter-name>CharstFilter</filter-name>
+  <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  
+  
+  
+  	<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <!-- 可以使用逗号分隔指向多个配置文件 -->
+    <param-value>classpath:spring/spring_config*.xml</param-value>
+    </context-param>
+    
+    <servlet>
+        <servlet-name>dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:spring/spring_mvc_config.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+  
+   <listener>
+   <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+   </listener>
+   <listener>
+   <listener-class>com.clsteach.listener.LoginListener</listener-class>
+   </listener>
+   <listener>
+   <listener-class>com.clsteach.listener.LoginListener2</listener-class>
+   </listener>
+  <session-config>
+  	<session-timeout>1</session-timeout>
+  </session-config>
+  
+</web-app>

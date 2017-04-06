@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clsteach.dao.ctrelationMapper">
+  <resultMap id="BaseResultMap" type="com.clsteach.entity.ctrelation">
+    <id column="RELA_ID" jdbcType="DECIMAL" property="relaId" />
+    <result column="TEACH_ID" jdbcType="DECIMAL" property="teachId" />
+    <result column="START_DATE" jdbcType="TIMESTAMP" property="startDate" />
+    <result column="END_DATE" jdbcType="TIMESTAMP" property="endDate" />
+  </resultMap>
+  
+   <resultMap id="ctrelteachMap" type="com.clsteach.entity.ctrelationex">
+    <id column="RELA_ID"  property="relaId" />
+    <result column="TEACH_ID"  property="teachId" />
+    <result column="START_DATE" jdbcType="DATE" property="startDate" />
+    <result column="END_DATE" jdbcType="DATE" property="endDate" />
+    <association property="teach" column="teach_id" javaType="com.clsteach.entity.teach">
+    	<id column="TEACH_ID" property="teachId" />
+	    <result column="TEACH_NAME" property="teachName" />
+	    <result column="ENTRY_DATE" jdbcType="DATE" property="entryDate" />
+	    <result column="TEACH_INTRO"  property="teachIntro" />
+	    <result column="TEACH_SEX"  property="teachSex" />
+    </association>
+  </resultMap>
+  
+  <sql id="Base_Column_List">
+    RELA_ID, TEACH_ID, STA_ID, CLS_ID, START_DATE, END_DATE
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from CTRELATION
+    where RELA_ID = #{relaId,jdbcType=DECIMAL}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from CTRELATION
+    where RELA_ID = #{relaId}
+  </delete>
+  <insert id="insert" parameterType="com.clsteach.entity.ctrelation">
+    <selectKey keyProperty="relaId" order="BEFORE" resultType="java.lang.Integer">
+      select seq_rela.nextval from dual
+    </selectKey>
+    insert into CTRELATION (RELA_ID,TEACH_ID, STA_ID, CLS_ID, 
+      START_DATE, END_DATE)
+    values (#{relaId},#{teachId}, #{staId}, #{clsId}, 
+      #{startDate,jdbcType=DATE}, #{endDate,jdbcType=DATE})
+  </insert>
+  <insert id="insertSelective" parameterType="com.clsteach.entity.ctrelation">
+    <selectKey keyProperty="relaId" order="BEFORE" resultType="java.lang.Integer">
+      select seq_rela.nextval from dual
+    </selectKey>
+    insert into CTRELATION
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="teachId != null">
+        TEACH_ID,
+      </if>
+      <if test="staId != null">
+        STA_ID,
+      </if>
+      <if test="clsId != null">
+        CLS_ID,
+      </if>
+      <if test="startDate != null">
+        START_DATE,
+      </if>
+      <if test="endDate != null">
+        END_DATE,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="teachId != null">
+        #{teachId},
+      </if>
+      <if test="staId != null">
+        #{staId},
+      </if>
+      <if test="clsId != null">
+        #{clsId,jdbcType=DECIMAL},
+      </if>
+      <if test="startDate != null">
+        #{startDate,jdbcType=DATE},
+      </if>
+      <if test="endDate != null">
+        #{endDate,jdbcType=DATE},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.clsteach.entity.ctrelation">
+    update CTRELATION
+    <set>
+      <if test="teachId != null">
+        TEACH_ID = #{teachId},
+      </if>
+      <if test="staId != null">
+        STA_ID = #{staId},
+      </if>
+      <if test="clsId != null">
+        CLS_ID = #{clsId},
+      </if>
+      <if test="startDate != null">
+        START_DATE = #{startDate,jdbcType=DATE},
+      </if>
+      <if test="endDate != null">
+        END_DATE = #{endDate,jdbcType=DATE},
+      </if>
+    </set>
+    where RELA_ID = #{relaId}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.clsteach.entity.ctrelation">
+    update CTRELATION
+    set TEACH_ID = #{teachId},
+      STA_ID = #{staId},
+      CLS_ID = #{clsId},
+      START_DATE = #{startDate,jdbcType=DATE},
+      END_DATE = #{endDate,jdbcType=DATE}
+    where RELA_ID = #{relaId}
+  </update>
+  
+  <select id="selectByclsAndsta" parameterType="com.clsteach.entity.ctrelation" resultMap="ctrelteachMap">
+  	select * from CTRELATION ct inner join teach te on ct.teach_id=te.teach_id 
+  	<where>
+  		<if test="staId!=0">
+  			ct.STA_ID=#{staId}
+  		</if>
+  		<if test="clsId!=0">
+  			and ct.CLS_ID = #{clsId}
+  		</if>
+  	</where>
+  </select>
+</mapper>

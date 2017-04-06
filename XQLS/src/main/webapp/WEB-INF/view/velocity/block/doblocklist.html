@@ -49,7 +49,7 @@ text-align:center;
 			onRemove : OnRemove,
 			//重命名之后调用的函数
 			onRename : OnRename,
-			onClick: onClick1
+			onClick: onClick
 		}
 	};
 	//文本框中下拉tree的设置
@@ -64,7 +64,7 @@ text-align:center;
 		},
 		callback : {
 			beforeClick: beforeClick,
-			onClick: onClick
+			onClick: onClick1
 		}
 	};
 	//velocity与jquery的美元符号使用异常的处理方式
@@ -73,6 +73,7 @@ text-align:center;
 	dw.ajax = function(s) {
 		jQuery.ajax(s);
 	}
+	
 	//通过ajax查询出需要显示的内容，s为需要显示树形图的元素的id，set为上面的setting json数据
 	function showtree(s,set) {
 		dw.ajax({
@@ -86,12 +87,14 @@ text-align:center;
 					}
 				});
 	}
+	
 	//删除节点之前操作的函数
 	function BeforeRemove(treeId, treeNode) {
 		var zTree = jQuery.fn.zTree.getZTreeObj("blockTree");
 		zTree.selectNode(treeNode);
 		return confirm("你确认要删除节点" + treeNode.name + "吗?");
 	}
+	
 	//重命名节点之前进行的函数
 	function BeforeRename(treeId, treeNode, newName, isCancel) {
 		if (newName.length < 1) {
@@ -137,8 +140,8 @@ text-align:center;
 			}
 		});
 	}
+	var count = 0;
 	//对于鼠标移入元素进行的操作
-	var newCount = 1;
 	function addHoverDom(treeId, treeNode) {
 		//获取移入的节点元素
 		var sObj = $("#" + treeNode.tId + "_span");
@@ -151,36 +154,31 @@ text-align:center;
 		sObj.after(addStr);
 		var btn = $("#addBtn_" + treeNode.tId);
 		//给节点绑定点击事件
+		
 		if (btn)btn.bind("click", function() {
 				//获取ztree的元素
 				var zTree = jQuery.fn.zTree.getZTreeObj("blockTree");
 				//新添加元素的默认名称
-				var name = "NewNode";
+				var newname = "NewNode"+(count++);
 				//使用ajax在数据库中添加对应的数据
 				dw.ajax({
 					url : "${request.contextPath}/block/doadd",
 					type : "post",
 					data : {
 						"blockNum" : treeNode.id,
-						"blockName" : name + (newCount++)
+						"blockName" : newname
 					},
 					dataType : "json",
 					success : function(data) {
 						if (data.tag) {
-						var newid = data.data.blockNum;
+						 newid = data.data.blockNum;
 							//如果数据库的数据添加成功则在节点上进行节点的添加
-							zTree.addNodes(treeNode, {
-								id : newid,
-								pId : treeNode.id,
-								name : "NewNode" + (newCount++)
-							});
-							var node = zTree.getNodeByParam("id", newid, null); //根据新的id找到新添加的节点  
-            				zTree.selectNode(node); //让新添加的节点处于选中状态  
-            				zTree.editName(node);
+						var node  = zTree.addNodes(treeNode, {id : newid,pId : treeNode.id,name:newname});
+			            //zTree.selectNode(node); //让新添加的节点处于选中状态  
+			            zTree.editName(node[0]);
 						}
 					}
 				});
-
 			});
 	};
 	
@@ -217,7 +215,7 @@ text-align:center;
 			return check;
 		}
 		//点击事件，如果不是父级节点。设置对应的文本框的值为点击的节点的名称
-		function onClick(e, treeId, treeNode) {
+		function onClick1(e, treeId, treeNode) {
 			var zTree = jQuery.fn.zTree.getZTreeObj("treeSelect"),
 			nodes = zTree.getSelectedNodes(),
 			v = "";
@@ -238,14 +236,17 @@ text-align:center;
 			hideMenu();
 		}
 		var key = null;
+		
+		
 	//判断选择的节点是否为父级节点
 	function beforeClick1(treeId, treeNode) {
 			var check = (treeNode && !treeNode.isParent);
 			if (!check) alert("只能选择城市...");
 			return check;
 		}
+		
 		//点击事件，如果不是父级节点。设置对应的文本框的值为点击的节点的名称
-	function onClick1(e, treeId, treeNode) {
+	function onClick(e, treeId, treeNode) {
 			var zTree = jQuery.fn.zTree.getZTreeObj("blockTree"),
 			nodes = zTree.getSelectedNodes(),
 			w = "";

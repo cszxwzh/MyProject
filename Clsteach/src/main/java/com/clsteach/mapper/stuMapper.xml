@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clsteach.dao.stuMapper">
+	<resultMap id="BaseResultMap" type="com.clsteach.entity.stu">
+		<id column="STU_ID" property="stuId" />
+		<result column="STU_NAME" property="stuName" />
+		<result column="CLS_ID" property="clsId" />
+		<result column="STU_BIRTH" jdbcType="DATE" property="stuBirth" />
+	</resultMap>
+
+	<resultMap type="com.clsteach.entity.stuex" id="PageResultMap">
+		<id column="STU_ID" property="stuId" />
+		<result column="STU_NAME" property="stuName" />
+		<result column="STU_BIRTH" jdbcType="DATE" property="stuBirth" />
+		<association property="cls" column="CLS_ID"
+			javaType="com.clsteach.entity.cls">
+			<id column="CLS_ID" property="clsId" />
+			<result column="CLS_NAME" property="clsName" />
+		</association>
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		STU_ID, STU_NAME, CLS_ID, STU_BIRTH
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="java.lang.Integer"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from STU
+		where STU_ID = #{stuId}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from STU
+		where STU_ID = #{stuId}
+	</delete>
+	<insert id="insert" parameterType="com.clsteach.entity.stu">
+		insert into STU (STU_ID,STU_NAME, CLS_ID, STU_BIRTH
+		)
+		values (#{stuId},#{stuName}, #{clsId}, #{stuBirth,jdbcType=DATE}
+		)
+	</insert>
+	<insert id="insertSelective" parameterType="com.clsteach.entity.stu">
+		insert into STU
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="stuId != null">
+				STU_ID,
+			</if>
+			<if test="stuName != null">
+				STU_NAME,
+			</if>
+			<if test="clsId != null">
+				CLS_ID,
+			</if>
+			<if test="stuBirth != null">
+				STU_BIRTH,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="stuId != null">
+				#{stuId},
+			</if>
+			<if test="stuName != null">
+				#{stuName},
+			</if>
+			<if test="clsId != null">
+				#{clsId},
+			</if>
+			<if test="stuBirth != null">
+				#{stuBirth,jdbcType=DATE},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="com.clsteach.entity.stu">
+		update STU
+		<set>
+			<if test="stuName != null">
+				STU_NAME = #{stuName},
+			</if>
+			<if test="clsId != null">
+				CLS_ID = #{clsId},
+			</if>
+			<if test="stuBirth != null">
+				STU_BIRTH = #{stuBirth,jdbcType=DATE},
+			</if>
+		</set>
+		where STU_ID = #{stuId}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="com.clsteach.entity.stu">
+		update STU
+		set STU_NAME = #{stuName},
+		CLS_ID = #{clsId},
+		STU_BIRTH = #{stuBirth,jdbcType=DATE}
+		where STU_ID = #{stuId}
+	</update>
+	<select id="selectCounts" parameterType="map" resultType="int">
+		select count(*) from (select
+		stu.stu_id,stu.stu_name,stu.stu_birth,cls.cls_id,cls.cls_name from stu
+		left join cls on cls.cls_id = stu.cls_id
+		<where>
+			<if test="stuName!=null">
+				STU.STU_NAME like #{stuName}
+			</if>
+			<if test="clsName!=null">
+				and CLS.cls_name like #{clsName}
+			</if>
+		</where>
+		)
+	</select>
+	<select id="selectByPage" parameterType="map" resultMap="PageResultMap">
+		select * from (
+		select rownum r,sl.* from (
+		select stu.stu_id,stu.stu_name,stu.stu_birth,cls.cls_id,cls.cls_name from
+		stu left join cls on cls.cls_id = stu.cls_id
+		<where>
+			<if test="stuName!=null">
+				STU.STU_NAME like #{stuName}
+			</if>
+			<if test="clsName!=null">
+				and CLS.cls_name like #{clsName}
+			</if>
+		</where>
+		order by stu.stu_id) sl
+		where rownum &lt;=#{index}) ss where ss.r &gt;#{start}
+	</select>
+	<select id="selectBycls" parameterType="int" resultMap="PageResultMap">
+		select * from stu where cls_id = #{_parameter}
+	</select>
+</mapper>

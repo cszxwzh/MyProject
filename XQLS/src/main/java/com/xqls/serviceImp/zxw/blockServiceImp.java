@@ -73,7 +73,6 @@ public class blockServiceImp implements blockService{
 
 	@Override
 	public int selsamenum(String blockNum) {
-		// TODO Auto-generated method stub
 		return blockMapper.seletSameNum(blockNum);
 	}
 

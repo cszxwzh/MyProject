@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clsteach.dao.loginuserMapper">
+  <resultMap id="BaseResultMap" type="com.clsteach.entity.loginuser">
+    <id column="LOG_ID"  property="logId" />
+    <result column="LOG_NAME"  property="logName" />
+    <result column="LOG_PSW"  property="logPsw" />
+    <result column="LOG_TYPE"  property="logType" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    LOG_ID, LOG_NAME, LOG_PSW, LOG_TYPE
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from LOGINUSER
+    where LOG_ID = #{logId}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from LOGINUSER
+    where LOG_ID = #{logId}
+  </delete>
+  <insert id="insert" parameterType="com.clsteach.entity.loginuser">
+    <selectKey keyProperty="logId" order="BEFORE" resultType="java.lang.Integer">
+      SELECT SEQ_LOGIN.NEXTVAL FROM DUAL
+    </selectKey>
+    insert into LOGINUSER (LOG_ID,LOG_NAME, LOG_PSW, LOG_TYPE
+      )
+    values (#{logId},#{logName}, #{logPsw}, #{logType}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.clsteach.entity.loginuser">
+    <selectKey keyProperty="logId" order="BEFORE" resultType="java.lang.Integer">
+      SELECT SEQ_LOGIN.NEXTVAL FROM DUAL
+    </selectKey>
+    insert into LOGINUSER
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="logId!=null">
+      	LOG_ID,
+      </if>
+      <if test="logName != null">
+        LOG_NAME,
+      </if>
+      <if test="logPsw != null">
+        LOG_PSW,
+      </if>
+      <if test="logType != null">
+        LOG_TYPE,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="logId!=null">
+      	#{logId},
+      </if>
+      <if test="logName != null">
+        #{logName},
+      </if>
+      <if test="logPsw != null">
+        #{logPsw},
+      </if>
+      <if test="logType != null">
+        #{logType},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.clsteach.entity.loginuser">
+    update LOGINUSER
+    <set>
+      <if test="logName != null">
+        LOG_NAME = #{logName},
+      </if>
+      <if test="logPsw != null">
+        LOG_PSW = #{logPsw},
+      </if>
+      <if test="logType != null">
+        LOG_TYPE = #{logType},
+      </if>
+    </set>
+    where LOG_ID = #{logId}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.clsteach.entity.loginuser">
+    update LOGINUSER
+    set LOG_NAME = #{logName},
+      LOG_PSW = #{logPsw},
+      LOG_TYPE = #{logType}
+    where LOG_ID = #{logId}
+  </update>
+  
+  <select id="logincheck" parameterType="com.clsteach.entity.loginuser" resultMap="BaseResultMap">
+  	select * from loginuser where LOG_NAME = #{logName} and LOG_PSW = #{logPsw}
+  </select>
+  
+  <select id="signincheck" parameterType="string" resultMap="BaseResultMap">
+  	select * from loginuser where LOG_NAME = #{_parameter}
+  </select>
+  
+  <insert id="insertBySign" parameterType="com.clsteach.entity.loginuser">
+  	<selectKey keyProperty="logId" order="BEFORE" resultType="java.lang.Integer">
+      SELECT SEQ_LOGIN.NEXTVAL FROM DUAL
+    </selectKey>
+    insert into (log_id,log_name,log_psw) values(#{logId},#{logName},#{logPsw})
+  </insert>
+  
+  <select id="selectBylogName" parameterType="string" resultMap="BaseResultMap">
+  	select * from loginuser
+  	<where>
+  		<if test="_parameter!=null and _parameter!=''">
+  			LOG_NAME = #{_parameter}
+  		</if>
+  	</where>
+  </select>
+  
+  <select id="selectByPage" parameterType="map" resultMap="BaseResultMap">
+  	select * from 
+  	(select rownum r ,sl.* from
+  	(select * from loginuser 
+  	<where>
+  		<if test="logName!=null and logName!=''">
+  			log_name like concat(concat('%',#{logName}),'%')
+  		</if>
+  	</where>
+  	order by log_id) sl where rownum &lt;=#{index}) ss
+  	where ss.r &gt; #{start}
+  </select>
+  <select id="selectCounts" parameterType="string" resultType="int">
+  	select count(*) from loginuser 
+  	<where>
+  	 <if test="_parameter!=null and _parameter!=''">
+  			log_name like concat(concat('%',#{_parameter}),'%')
+  		</if>
+  	</where>
+  </select>
+</mapper>

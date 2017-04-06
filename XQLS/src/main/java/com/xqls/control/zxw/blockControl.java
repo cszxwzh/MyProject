@@ -60,6 +60,7 @@ public JsonResult doupd(String blockNum,String blockName){
 	block block =new block();
 	block.setBlockNum(blockNum);
 	block.setBlockName(blockName);
+	System.out.println("获得的区块编码是："+blockNum);
 	block oBlock = blockService.selblockByNumAndName(block);
 	System.out.println("oblock的值是"+oBlock);
 	int res = 0;
@@ -82,7 +83,9 @@ public JsonResult doadd(String blockNum,String blockName){
 	block block =new block();
 	block.setBlockNum(blockNum);
 	block.setBlockName(blockName);
-	String firstnum = blockService.selsamenum(blockNum)+1+"";
+	int samenumcount = blockService.selsamenum(blockNum);
+	System.out.println("当前有"+samenumcount+"个相同元素");
+	String firstnum = samenumcount+1+"";
 	for (int i = firstnum.length(); i < 4; i++) {
 		firstnum = "0"+ firstnum;
 	}
@@ -91,9 +94,9 @@ public JsonResult doadd(String blockNum,String blockName){
 	block.setBlockNum(blockNum);
 	int res = blockService.addblock(block);
 	if(res>0){
-		js.setTag(true);js.setMessage("更新成功！");js.setData(block);
+		js.setTag(true);js.setMessage("插入成功！");js.setData(block);
 	}else {
-		js.setTag(false);js.setMessage("更新失败！");
+		js.setTag(false);js.setMessage("插入失败！");
 	}
 	return js;
 }

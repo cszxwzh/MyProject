@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clsteach.dao.teachMapper">
+  <resultMap id="BaseResultMap" type="com.clsteach.entity.teach">
+    <id column="TEACH_ID" property="teachId" />
+    <result column="TEACH_NAME" property="teachName" />
+    <result column="ENTRY_DATE" jdbcType="DATE" property="entryDate" />
+    <result column="TEACH_INTRO"  property="teachIntro" />
+    <result column="TEACH_SEX"  property="teachSex" />
+  </resultMap>
+  
+  <resultMap id="ClsTeachMap" type="com.clsteach.entity.teachex">
+    <id column="TEACH_ID"  property="teachId" />
+    <result column="TEACH_NAME"  property="teachName" />
+    <result column="ENTRY_DATE" jdbcType="DATE" property="entryDate" />
+    <result column="TEACH_INTRO"  property="teachIntro" />
+    <result column="TEACH_SEX"  property="teachSex" />
+    <collection property="clslist" ofType="com.clsteach.entity.cls">
+    	<id column="CLS_ID"  property="clsId" />
+    	<result column="CLS_NAME"  property="clsName" />
+    </collection>
+  </resultMap>
+  
+  <sql id="Base_Column_List">
+    TEACH_ID, TEACH_NAME, ENTRY_DATE, TEACH_INTRO, TEACH_SEX
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from TEACH
+    where TEACH_ID = #{teachId}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from TEACH
+    where TEACH_ID = #{teachId}
+  </delete>
+  <insert id="insert" parameterType="com.clsteach.entity.teach">
+    <selectKey keyProperty="teachId" order="BEFORE" resultType="java.lang.Integer">
+      select seq_teach.nextval from dual
+    </selectKey>
+    insert into TEACH (TEACH_ID,TEACH_NAME, ENTRY_DATE, TEACH_INTRO, 
+      TEACH_SEX)
+    values (#{teachId},#{teachName}, #{entryDate,jdbcType=DATE}, #{teachIntro}, 
+      #{teachSex})
+  </insert>
+  <insert id="insertSelective" parameterType="com.clsteach.entity.teach">
+    <selectKey keyProperty="teachId" order="BEFORE" resultType="java.lang.Integer">
+        select seq_teach.nextval from dual
+    </selectKey>
+    insert into TEACH
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="teachName != null">
+        TEACH_NAME,
+      </if>
+      <if test="entryDate != null">
+        ENTRY_DATE,
+      </if>
+      <if test="teachIntro != null">
+        TEACH_INTRO,
+      </if>
+      <if test="teachSex != null">
+        TEACH_SEX,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="teachName != null">
+        #{teachName},
+      </if>
+      <if test="entryDate != null">
+        #{entryDate,jdbcType=DATE},
+      </if>
+      <if test="teachIntro != null">
+        #{teachIntro},
+      </if>
+      <if test="teachSex != null">
+        #{teachSex},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.clsteach.entity.teach">
+    update TEACH
+    <set>
+      <if test="teachName != null">
+        TEACH_NAME = #{teachName},
+      </if>
+      <if test="entryDate != null">
+        ENTRY_DATE = #{entryDate,jdbcType=DATE},
+      </if>
+      <if test="teachIntro != null">
+        TEACH_INTRO = #{teachIntro},
+      </if>
+      <if test="teachSex != null">
+        TEACH_SEX = #{teachSex},
+      </if>
+    </set>
+    where TEACH_ID = #{teachId}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.clsteach.entity.teach">
+    update TEACH
+    set TEACH_NAME = #{teachName},
+      ENTRY_DATE = #{entryDate,jdbcType=DATE},
+      TEACH_INTRO = #{teachIntro},
+      TEACH_SEX = #{teachSex}
+    where TEACH_ID = #{teachId}
+  </update>
+  <select id="selectByPage" parameterType="map" resultMap="BaseResultMap">
+	  select * from 
+	  	(select rownum r,tea.* from 
+	  		(select * from teach 
+	  		<where>
+	  		<if test="teachName!=null">
+	  			teach_name like #{teachName}
+	  		</if>
+	  		<if test="teachIntro !=null">
+	  			and teach_intro like #{teachIntro}
+	  		</if>
+	  		</where>
+	  		order by teach_id) tea 
+	  			where rownum &lt;=#{index}) stea  
+	  				where stea.r&gt;#{start}
+  </select>
+  
+  <select id="selectByName" parameterType="string" resultMap="BaseResultMap">
+ 		 select * from teach where teach_name like #{_parameter}
+  </select>
+  
+  <select id="selectCounts" parameterType="map" resultType="int">
+  		select count(*) from teach 
+  		<where>
+  		<if test="teachName!=null">
+	  			teach_name like #{teachName}
+	  		</if>
+	  		<if test="teachIntro !=null">
+	  			and teach_intro like #{teachIntro}
+	  		</if>
+  		</where>
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+  select * from teach order by teach_id
+  </select>
+  
+  <select id="selectClsteachById" parameterType="int" resultMap="ClsTeachMap">
+  	select te.*,cl.* from ctrelation ct left join cls cl on ct.cls_id=cl.cls_id left join teach te on te.teach_id = ct.teach_id 
+  	<where>
+  		<if test="_parameter!=null">
+  			te.teach_id = #{_parameter}
+  		</if>
+  	</where>
+  </select>
+  
+  <select id="selectByClsId" parameterType="int" resultMap ="BaseResultMap">
+  	select distinct te.* from ctrelation ct inner join teach te on ct.teach_id=te.teach_id  where ct.cls_id = #{_parameter} 
+  </select>
+  
+   <select id="selectByNewPage" parameterType="map" resultType="map">
+	  select * from 
+	  	(select rownum r,st.* from sel_teachclsnames_group st 
+	  		<where>
+	  		<if test="teachName!=null">
+	  			teach_name like #{teachName}
+	  		</if>
+	  		<if test="teachIntro !=null">
+	  			and teach_intro like #{teachIntro}
+	  		</if>
+	  		<if test="index!=null">
+	  			and rownum &lt;=#{index}
+	  		</if>
+	  		</where>
+	  			) stea  
+	  				where stea.r&gt;#{start}
+  </select>
+  
+</mapper>

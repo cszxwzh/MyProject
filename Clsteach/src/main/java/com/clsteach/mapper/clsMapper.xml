@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clsteach.dao.clsMapper">
+  
+  <resultMap id="BaseResultMap" type="com.clsteach.entity.cls">
+    <id column="CLS_ID" property="clsId" />
+    <result column="CLS_NAME"  property="clsName" />
+  </resultMap>
+  
+  <resultMap id="PageResultMap" type="com.clsteach.entity.clsex">
+    <id column="CLS_ID"  property="clsId" />
+    <result column="CLS_NAME"  property="clsName"/>
+   
+    <collection property="stagelist" ofType="com.clsteach.entity.stageex">
+    		<id column="STA_ID"  property="staId"/>
+	    	<result column="STA_NAME"  property="staName" />
+	    <association property="teach" column="teach_id" javaType="com.clsteach.entity.teach">
+		    <id column="TEACH_ID"  property="teachId" />
+		    <result column="TEACH_NAME"  property="teachName" />
+		    <result column="ENTRY_DATE" jdbcType="DATE" property="entryDate" />
+		    <result column="TEACH_INTRO"  property="teachIntro" />
+		    <result column="TEACH_SEX"  property="teachSex" />
+    	</association>
+    	<association property="ctrelation" column="rela_id" javaType="com.clsteach.entity.ctrelation">
+    		<id column="RELA_ID" property="relaId" />
+		    <result column="TEACH_ID"  property="teachId" />
+		    <result column="START_DATE"  property="startDate" />
+		    <result column="END_DATE"  property="endDate" />
+    	</association>
+    </collection>
+  </resultMap>
+  
+  <sql id="Base_Column_List">
+    CLS_ID, CLS_NAME
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from CLS
+    where CLS_ID = #{clsId}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from CLS
+    where CLS_ID = #{clsId}
+  </delete>
+  <insert id="insert" parameterType="com.clsteach.entity.cls">
+    <selectKey keyProperty="clsId" order="BEFORE" resultType="java.lang.Integer">
+      select seq_cls.nextval from dual
+    </selectKey>
+    insert into CLS (CLS_ID,CLS_NAME)
+    values (#{clsId},#{clsName})
+  </insert>
+  <insert id="insertSelective" parameterType="com.clsteach.entity.cls">
+    <selectKey keyProperty="clsId" order="BEFORE" resultType="java.lang.Integer">
+      select seq_cls.nextval from dual
+    </selectKey>
+    insert into CLS
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="clsName != null">
+        CLS_NAME,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="clsName != null">
+        #{clsName},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.clsteach.entity.cls">
+    update CLS
+    <set>
+      <if test="clsName != null">
+        CLS_NAME = #{clsName},
+      </if>
+    </set>
+    where CLS_ID = #{clsId}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.clsteach.entity.cls">
+    update CLS
+    set CLS_NAME = #{clsName}
+    where CLS_ID = #{clsId}
+  </update>
+  
+  <select id="selectAll" resultMap="BaseResultMap">
+  	select * from cls
+  </select>
+  
+  <select id="selectByPage" parameterType="hashmap" resultMap="PageResultMap">
+  	select * from (
+  	select rownum r,sl.* from (
+  	select cl.*,te.*,st.*,ct.rela_id,ct.start_date,ct.end_date from cls cl left join ctrelation ct on cl.cls_id=ct.cls_id left join teach te on ct.teach_id=te.teach_id left join stage st on ct.sta_id=st.sta_id  
+  	<where>
+  		<if test="clsName!=null and clsName !=''">
+  			 cl.cls_name like #{clsName}
+  		</if>
+  	</where>
+  	order by cl.cls_id,st.sta_id) sl 
+  	where rownum &lt;=#{index}) ss where ss.r &gt;#{start}
+  </select>
+  
+  <select id="selectCounts" parameterType="com.clsteach.entity.cls" resultType="int">
+  select count(*) from(select cl.*,te.*,st.*,ct.rela_id,ct.start_date,ct.end_date from cls cl left join ctrelation ct on cl.cls_id=ct.cls_id left join teach te on ct.teach_id=te.teach_id left join stage st on ct.sta_id=st.sta_id 
+  <where>
+  	<if test="clsName!=null and clsName !=''">
+  		 cls_name like #{clsName}
+  	</if>
+  </where>
+  order by cl.cls_id,st.sta_id)
+  </select>
+ 
+ <select id="selectByPage2" parameterType="map" resultMap="BaseResultMap">
+ 	select * from (select rownum r , sl.* from (select * from cls cl
+ 	<where>
+ 	<if test="clsName!=null and clsName !=''">
+ 		cl.cls_name like #{clsName}
+ 	</if>
+ 	</where>
+ 	order by cls_id) sl where rownum &lt;=#{index}) ss where ss.r &gt; #{start}
+ </select>
+ 
+ <select id="selectCounts2" parameterType="com.clsteach.entity.cls" resultType="int">
+ 	select count(*) from cls
+ 	<where>
+ 	<if test="clsName!=null and clsName !=''">
+ 		cls_name like #{clsName}
+ 	</if>
+ 	</where>
+ </select>
+ <select id="selectByclsName" parameterType="com.clsteach.entity.cls" resultMap="BaseResultMap">
+ 	select * from cls 
+ 	<where>
+ 		<if test="clsName!=null and clsName!=''">
+ 			cls_name = #{clsName}
+ 		</if>
+ 	</where>
+ </select>
+</mapper>

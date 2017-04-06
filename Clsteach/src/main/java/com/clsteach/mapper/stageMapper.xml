@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clsteach.dao.stageMapper">
+  <resultMap id="BaseResultMap" type="com.clsteach.entity.stage">
+    <id column="STA_ID"  property="staId" />
+    <result column="STA_NAME"  property="staName" />
+  </resultMap>
+  
+  <resultMap type="com.clsteach.entity.stageex" id="teachclsMap">
+  		<id column="STA_ID"  property="staId" />
+    	<result column="STA_NAME"  property="staName" />
+  		
+  		<association property="teach" column="teach_id" javaType="com.clsteach.entity.teach">
+		    <id column="TEACH_ID"  property="teachId" />
+		    <result column="TEACH_NAME"  property="teachName" />
+		    <result column="ENTRY_DATE" jdbcType="DATE" property="entryDate" />
+		    <result column="TEACH_INTRO"  property="teachIntro" />
+		    <result column="TEACH_SEX"  property="teachSex" />
+    	</association>
+    	<association property="ctrelation" column="rela_id" javaType="com.clsteach.entity.ctrelation">
+    		<id column="RELA_ID" property="relaId" />
+		    <result column="TEACH_ID"  property="teachId" />
+		    <result column="START_DATE"  property="startDate" />
+		    <result column="END_DATE"  property="endDate" />
+    	</association>
+  </resultMap>
+  
+  <sql id="Base_Column_List">
+    STA_ID, STA_NAME
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from STAGE
+    where STA_ID = #{staId}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from STAGE
+    where STA_ID = #{staId}
+  </delete>
+  <insert id="insert" parameterType="com.clsteach.entity.stage">
+    <selectKey keyProperty="staId" order="BEFORE" resultType="java.lang.Integer">
+      Orcale
+    </selectKey>
+    insert into STAGE (STA_NAME)
+    values (#{staName})
+  </insert>
+  <insert id="insertSelective" parameterType="com.clsteach.entity.stage">
+    <selectKey keyProperty="staId" order="BEFORE" resultType="java.lang.Integer">
+      Orcale
+    </selectKey>
+    insert into STAGE
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="staName != null">
+        STA_NAME,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="staName != null">
+        #{staName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.clsteach.entity.stage">
+    update STAGE
+    <set>
+      <if test="staName != null">
+        STA_NAME = #{staName},
+      </if>
+    </set>
+    where STA_ID = #{staId}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.clsteach.entity.stage">
+    update STAGE
+    set STA_NAME = #{staName}
+    where STA_ID = #{staId}
+  </update>
+  <select id="selectAll" resultMap="BaseResultMap">
+  	select * from STAGE order by sta_id
+  </select>
+  
+  <select id="selectByclsteach" parameterType="int" resultMap="teachclsMap">
+  		select st.*,ct.rela_id,ct.start_date,ct.end_date,te.* from 
+  		stage st left join ctrelation ct on ct.sta_id=st.sta_id left join teach te on te.teach_id=ct.teach_id 
+  		where ct.cls_id = #{_parameter} 
+  		order by st.sta_id
+  </select>
+  
+</mapper>
